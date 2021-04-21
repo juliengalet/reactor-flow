@@ -12,7 +12,7 @@ public final class TestUtils {
   public static <T extends FlowContext> Consumer<State<T>> assertAndLog(Consumer<State<T>> assertions) {
     return state -> {
       System.out.println(state.toPrettyString());
-      System.out.println(state.toPrettyErrorsAndWarningsString());
+      System.out.println(state.toPrettyExceptionsRaisedString());
       System.out.println(state.getContext().toPrettyString());
       System.out.println(state.toPrettyTreeString());
       assertions.accept(state);

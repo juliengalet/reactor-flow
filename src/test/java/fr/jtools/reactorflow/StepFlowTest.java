@@ -7,7 +7,7 @@ import fr.jtools.reactorflow.exception.FlowExceptionType;
 import fr.jtools.reactorflow.exception.FlowFunctionalException;
 import fr.jtools.reactorflow.exception.FlowTechnicalException;
 import fr.jtools.reactorflow.flow.ParallelFlow;
-import fr.jtools.reactorflow.flow.StepExecution;
+import fr.jtools.reactorflow.flow.Step;
 import fr.jtools.reactorflow.flow.StepFlow;
 import fr.jtools.reactorflow.state.FlowContext;
 import fr.jtools.reactorflow.state.Metadata;
@@ -355,7 +355,7 @@ final class StepFlowTest {
         .verifyComplete();
   }
 
-  static final class TestWork extends StepExecution<FlowContext, Object> {
+  static final class TestWork implements Step<FlowContext, Object> {
     @Override
     public Mono<State<FlowContext>> apply(StepFlow<FlowContext, Object> flow, State<FlowContext> state, Metadata<Object> metadata) {
       state.getContext().put("Test", "Test");
@@ -363,7 +363,7 @@ final class StepFlowTest {
     }
   }
 
-  static final class TestWorkWithMetadata extends StepExecution<FlowContext, StreamTokenizer> {
+  static final class TestWorkWithMetadata implements Step<FlowContext, StreamTokenizer> {
     @Override
     public Mono<State<FlowContext>> apply(StepFlow<FlowContext, StreamTokenizer> flow, State<FlowContext> state, Metadata<StreamTokenizer> metadata) {
       System.out.println(metadata.getData().getClass().getSimpleName());

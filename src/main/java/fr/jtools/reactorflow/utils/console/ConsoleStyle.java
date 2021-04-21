@@ -1,5 +1,8 @@
-package fr.jtools.reactorflow.utils;
+package fr.jtools.reactorflow.utils.console;
 
+/**
+ * An enum storing a set of available styles for the console.
+ */
 public enum ConsoleStyle {
   //Color end string, color reset
   RESET("\033[0m"),

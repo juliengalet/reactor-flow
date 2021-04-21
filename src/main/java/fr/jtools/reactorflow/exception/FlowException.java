@@ -1,45 +1,66 @@
 package fr.jtools.reactorflow.exception;
 
 import fr.jtools.reactorflow.flow.Flow;
-import fr.jtools.reactorflow.utils.ConsoleStyle;
-import fr.jtools.reactorflow.utils.PrettyPrint;
+import fr.jtools.reactorflow.utils.console.ConsoleStyle;
+import fr.jtools.reactorflow.utils.console.PrettyPrint;
 
 import java.util.Objects;
 
-import static fr.jtools.reactorflow.utils.LoggerUtils.colorize;
+import static fr.jtools.reactorflow.utils.console.LoggerUtils.colorize;
 
+/**
+ * Abstract exception used to generate all types of exceptions used in this library.
+ * You can inherit this class to build custom exceptions if you want.
+ */
 public abstract class FlowException extends RuntimeException implements PrettyPrint {
+  /**
+   * Abstract method that should be implemented, in order to know the {@link FlowExceptionType}.
+   *
+   * @return A {@link FlowExceptionType}
+   */
   public abstract FlowExceptionType getType();
 
-  private transient Flow<?> flowConcerned;
+  /**
+   * The {@link Flow} concerned by the exception (null if it is a {@link FlowBuilderException}).
+   */
+  private final transient Flow<?> flowConcerned;
 
+  /**
+   * Get the {@link FlowException#flowConcerned}.
+   *
+   * @return A {@link Flow} or null.
+   */
   public Flow<?> getFlowConcerned() {
     return this.flowConcerned;
   }
 
-  protected void setFlowConcerned(Flow<?> flow) {
-    this.flowConcerned = flow;
-  }
-
-  public FlowException(String message) {
+  /**
+   * Construct an exception from a {@link FlowException#flowConcerned} and a message.
+   *
+   * @param flowConcerned {@link FlowException#flowConcerned}
+   * @param message       The message
+   */
+  protected FlowException(Flow<?> flowConcerned, String message) {
     super(message);
+    this.flowConcerned = flowConcerned;
   }
 
-  public FlowException(Throwable cause, String message) {
+  /**
+   * Construct an exception from a {@link FlowException#flowConcerned}, a message, and the original {@link Throwable}.
+   *
+   * @param flowConcerned {@link FlowException#flowConcerned}
+   * @param message       The message
+   */
+  protected FlowException(Throwable cause, Flow<?> flowConcerned, String message) {
     super(message, cause);
+    this.flowConcerned = flowConcerned;
   }
 
-  public FlowException(Flow<?> flow, String message) {
-    super(message);
-    this.setFlowConcerned(flow);
-  }
-
-  public FlowException(Flow<?> flow, Throwable cause, String message) {
-    super(message, cause);
-    this.setFlowConcerned(flow);
-  }
-
-
+  /**
+   * Get the string representation of the exception.
+   *
+   * @return A {@link String} representing the exception
+   */
   @Override
   public String toString() {
     if (Objects.isNull(this.getFlowConcerned())) {
@@ -59,6 +80,11 @@ public abstract class FlowException extends RuntimeException implements PrettyPr
     );
   }
 
+  /**
+   * Get the colorized string representation of the exception.
+   *
+   * @return A {@link String} representing the exception
+   */
   @Override
   public String toPrettyString() {
     if (Objects.isNull(this.getFlowConcerned())) {
@@ -78,6 +104,12 @@ public abstract class FlowException extends RuntimeException implements PrettyPr
     );
   }
 
+  /**
+   * Check if the exception is recoverable or retryable, for a {@link RecoverableFlowException} type.
+   *
+   * @param recoverable A {@link RecoverableFlowException} type
+   * @return A boolean
+   */
   public final boolean isRecoverable(RecoverableFlowException recoverable) {
     if (recoverable == RecoverableFlowException.ALL) {
       return true;
@@ -87,10 +119,6 @@ public abstract class FlowException extends RuntimeException implements PrettyPr
       return true;
     }
 
-    if (recoverable == RecoverableFlowException.TECHNICAL && this.getType() == FlowExceptionType.TECHNICAL) {
-      return true;
-    }
-
-    return false;
+    return recoverable == RecoverableFlowException.TECHNICAL && this.getType() == FlowExceptionType.TECHNICAL;
   }
 }

@@ -5,8 +5,8 @@ import fr.jtools.reactorflow.exception.FlowTechnicalException;
 import fr.jtools.reactorflow.state.FlowContext;
 import fr.jtools.reactorflow.state.Metadata;
 import fr.jtools.reactorflow.state.State;
-import fr.jtools.reactorflow.utils.ConsoleStyle;
-import fr.jtools.reactorflow.utils.PrettyPrint;
+import fr.jtools.reactorflow.utils.console.ConsoleStyle;
+import fr.jtools.reactorflow.utils.console.PrettyPrint;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
@@ -16,7 +16,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
-import static fr.jtools.reactorflow.utils.LoggerUtils.colorize;
+import static fr.jtools.reactorflow.utils.console.LoggerUtils.colorize;
 
 /**
  * Abstract class managing all the {@link Flow}s.
@@ -260,8 +260,7 @@ public abstract class Flow<T extends FlowContext> implements PrettyPrint {
    * @return A {@link Mono} containing the resulting {@link State}
    */
   public final Mono<State<T>> run(T initialContext) {
-    State<T> initialState = State.initiate(initialContext);
-    initialState.setRoot(this);
+    State<T> initialState = State.initiate(initialContext, this);
     return this.execute(initialState, Metadata.empty());
   }
 
