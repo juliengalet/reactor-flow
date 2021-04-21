@@ -1,104 +1,182 @@
 package fr.jtools.reactorflow.state;
 
-import fr.jtools.reactorflow.exception.FlowBuilderException;
 import fr.jtools.reactorflow.exception.FlowException;
 import fr.jtools.reactorflow.flow.Flow;
-import fr.jtools.reactorflow.utils.ConsoleStyle;
-import fr.jtools.reactorflow.utils.PrettyPrint;
+import fr.jtools.reactorflow.utils.console.ConsoleStyle;
+import fr.jtools.reactorflow.utils.console.PrettyPrint;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static fr.jtools.reactorflow.utils.LoggerUtils.colorize;
+import static fr.jtools.reactorflow.utils.console.LoggerUtils.colorize;
 
+/**
+ * This class stores the state of a {@link Flow} execution, initialized by {@link Flow#run(T)}.
+ *
+ * @param <T> Context type
+ */
 public class State<T extends FlowContext> implements PrettyPrint {
+  /**
+   * The {@link State} global context.
+   */
   private final T context;
-  private Flow<T> root;
 
-  public static <T extends FlowContext> State<T> initiate(T initialContext) {
-    return new State<>(initialContext);
+  /**
+   * The root {@link Flow}, aka the one on which you call {@link Flow#run(T)}.
+   */
+  private final Flow<T> root;
+
+  /**
+   * Create a {@link State} with the initial {@link T} context value.
+   *
+   * @param initialContext The initial {@link T} context
+   * @param root           The {@link State#root} {@link Flow}
+   * @param <T>            Context type
+   * @return A {@link State}
+   */
+  public static <T extends FlowContext> State<T> initiate(T initialContext, Flow<T> root) {
+    return new State<>(initialContext, root);
   }
 
-  public static State<FlowContext> initiateDefaultFrom(FlowContext initialContext) {
-    return new State<>(initialContext);
-  }
-
-  public static State<FlowContext> initiateDefault() {
-    return new State<>(FlowContext.create());
-  }
-
-  public State(T initialContext) {
+  private State(T initialContext, Flow<T> root) {
+    this.root = root;
     this.context = initialContext;
   }
 
+  /**
+   * Get {@link T} context.
+   *
+   * @return The {@link T} context
+   */
   public T getContext() {
     return this.context;
   }
 
+  /**
+   * Get {@link State} global {@link State.Status}.
+   * It corresponds the {@link State.Status} of {@link State#root}.
+   *
+   * @return A {@link State.Status}
+   */
   public Status getStatus() {
     return this.root.getStatus();
   }
 
+  /**
+   * Get all {@link FlowException} errors that occurred during {@link State#root} execution.
+   *
+   * @return The {@link FlowException} errors
+   */
   public List<FlowException> getAllErrors() {
-    return List.copyOf(this.root.getErrorsForFlowAndChildren());
+    return this.root.getErrorsForFlowAndChildren();
   }
 
+  /**
+   * Get all {@link FlowException} warnings that occurred during {@link State#root} execution.
+   *
+   * @return The {@link FlowException} warnings
+   */
   public List<FlowException> getAllWarnings() {
-    return List.copyOf(this.root.getWarningsForFlowAndChildren());
+    return this.root.getWarningsForFlowAndChildren();
   }
 
+  /**
+   * Get all {@link FlowException} recovered errors that occurred during {@link State#root} execution.
+   *
+   * @return The {@link FlowException} recovered errors
+   */
   public List<FlowException> getAllRecoveredErrors() {
-    return List.copyOf(this.root.getRecoveredErrorsForFlowAndChildren());
+    return this.root.getRecoveredErrorsForFlowAndChildren();
   }
 
+  /**
+   * The global name of the {@link Flow} executed, aka the name of {@link State#root}.
+   *
+   * @return The name
+   */
   public String getName() {
     return this.root.getName();
   }
 
-  public void setRoot(Flow<T> flow) {
-    if (Objects.nonNull(this.root)) {
-      throw new FlowBuilderException(State.class, "root can not be set two times");
-    }
-    this.root = flow;
+  /**
+   * Get the global duration of the {@link Flow} in milliseconds.
+   *
+   * @return The duration as a {@link Double}
+   */
+  public Double getDurationInMillis() {
+    return this.root.getDurationInMillis();
   }
 
+  /**
+   * Get the {@link State#root} {@link Flow} type.
+   *
+   * @return The {@link State#root} {@link Flow} type
+   */
+  public String getRootType() {
+    return this.root.getClass().getSimpleName();
+  }
+
+  /**
+   * Get a string representation of the summary result of the executed {@link Flow}.
+   *
+   * @return A {@link String} representing the {@link Flow}
+   */
   @Override
   public String toString() {
     return String.format(
         "Summary%n%s - %s named %s ended in %s (%s)%n",
-        this.root.getStatus().name(),
-        this.root.getClass().getSimpleName(),
-        this.root.getName(),
-        String.format(Locale.US, "%.2f ms", this.root.getDurationInMillis()),
+        this.getStatus().name(),
+        this.getRootType(),
+        this.getName(),
+        String.format(Locale.US, "%.2f ms", this.getDurationInMillis()),
         this.root.hashCode()
     );
   }
 
+  /**
+   * Get a colorized string representation of the summary result of the executed {@link Flow}.
+   *
+   * @return A {@link String} representing the {@link Flow}
+   */
   @Override
   public String toPrettyString() {
     return String.format(
         "%s%n%s - %s named %s ended in %s (%s)%n",
         colorize("Summary", ConsoleStyle.MAGENTA_BOLD),
-        colorize(this.root.getStatus().name(), State.getStatusConsoleStyle(this.root.getStatus())),
-        colorize(this.root.getClass().getSimpleName(), ConsoleStyle.BLUE_BOLD),
-        colorize(this.root.getName(), ConsoleStyle.WHITE_BOLD),
-        colorize(String.format(Locale.US, "%.2f ms", this.root.getDurationInMillis()), ConsoleStyle.MAGENTA_BOLD),
+        colorize(this.getStatus().name(), State.getStatusConsoleStyle(this.getStatus())),
+        colorize(this.getRootType(), ConsoleStyle.BLUE_BOLD),
+        colorize(this.getName(), ConsoleStyle.WHITE_BOLD),
+        colorize(String.format(Locale.US, "%.2f ms", this.getDurationInMillis()), ConsoleStyle.MAGENTA_BOLD),
         colorize(String.valueOf(this.root.hashCode()), ConsoleStyle.BLACK_BOLD)
     );
   }
 
+  /**
+   * Get a string representation of the result of the executed {@link Flow}, in a tree containing all its subflows.
+   *
+   * @return A {@link String} representing the tree
+   */
   public String toTreeString() {
     return this.root.toTreeString();
   }
 
+  /**
+   * Get a colorized string representation of the result of the executed {@link Flow}, in a tree containing all its subflows.
+   *
+   * @return A {@link String} representing the tree
+   */
   public String toPrettyTreeString() {
     return this.root.toPrettyTreeString();
   }
 
-  public String toPrettyErrorsAndWarningsString() {
+  /**
+   * Get a colorized string representation of the exceptions raised by the executed {@link Flow}, or its subflows.
+   *
+   * @return A {@link String} representing the exceptions
+   */
+  public String toPrettyExceptionsRaisedString() {
     List<String> exceptionMessages = Stream
         .concat(
             this.root.getErrorsForFlowAndChildren()
@@ -136,7 +214,12 @@ public class State<T extends FlowContext> implements PrettyPrint {
     );
   }
 
-  public String toErrorsAndWarningsString() {
+  /**
+   * Get a string representation of the exceptions raised by the executed {@link Flow}, or its subflows.
+   *
+   * @return A {@link String} representing the exceptions
+   */
+  public String toExceptionsRaisedString() {
     List<String> exceptionMessages = Stream
         .concat(
             this.root.getErrorsForFlowAndChildren()
@@ -174,6 +257,12 @@ public class State<T extends FlowContext> implements PrettyPrint {
     );
   }
 
+  /**
+   * Get the {@link ConsoleStyle} matching a {@link State.Status}.
+   *
+   * @param status A {@link State.Status}
+   * @return The {@link ConsoleStyle}
+   */
   public static ConsoleStyle getStatusConsoleStyle(State.Status status) {
     switch (status) {
       case SUCCESS:
@@ -187,10 +276,26 @@ public class State<T extends FlowContext> implements PrettyPrint {
     }
   }
 
+  /**
+   * The status that a {@link Flow} can have after its execution or when it is not executed.
+   */
   public enum Status {
+    /**
+     * Non executed {@link Flow}.
+     */
     IGNORED,
+    /**
+     * {@link Flow} executed with at least one warning in itself or in its children.
+     */
     WARNING,
+    /**
+     * {@link Flow} executed with no warning or error in itself or in its children.
+     */
     SUCCESS,
+    /**
+     * {@link Flow} executed with at least one valid error in itself or in its children.
+     * An error is valid if it has not be recovered, or if it is not ignore by a {@link fr.jtools.reactorflow.flow.FlowStatusPolicy}.
+     */
     ERROR
   }
 }

@@ -5,6 +5,13 @@ import fr.jtools.reactorflow.exception.FlowException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Class used to store metadata during a {@link fr.jtools.reactorflow.flow.Flow}
+ * It is used with {@link fr.jtools.reactorflow.flow.ParallelFlow} when looping on an array from the context,
+ * or with {@link fr.jtools.reactorflow.flow.SequentialFlow}, to have the previous errors during doFinally {@link fr.jtools.reactorflow.flow.Flow}.
+ *
+ * @param <M> The metadata type
+ */
 public class Metadata<M> {
   private final List<FlowException> errors = new ArrayList<>();
   private final List<FlowException> warnings = new ArrayList<>();

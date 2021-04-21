@@ -1,7 +1,7 @@
 package fr.jtools.reactorflow.state;
 
-import fr.jtools.reactorflow.utils.ConsoleStyle;
-import fr.jtools.reactorflow.utils.PrettyPrint;
+import fr.jtools.reactorflow.utils.console.ConsoleStyle;
+import fr.jtools.reactorflow.utils.console.PrettyPrint;
 
 import java.util.Map;
 import java.util.Objects;
@@ -9,7 +9,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import static fr.jtools.reactorflow.utils.LoggerUtils.colorize;
+import static fr.jtools.reactorflow.utils.console.LoggerUtils.colorize;
 
 /**
  * Default context, using a ConcurrentHashMap, in order to be thread safe during ParallelFlow.
