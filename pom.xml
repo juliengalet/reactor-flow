@@ -19,6 +19,19 @@
         <tag>HEAD</tag>
     </scm>
 
+    <distributionManagement>
+        <snapshotRepository>
+            <id>github-snapshot</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/juliengalet/reactor-flow</url>
+        </snapshotRepository>
+        <repository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/juliengalet/reactor-flow</url>
+        </repository>
+    </distributionManagement>
+
     <licenses>
         <license>
             <name>MIT License</name>
@@ -54,6 +67,9 @@
         <maven-javadoc-plugin.version>3.2.0</maven-javadoc-plugin.version>
         <maven-site-plugin.version>3.7.1</maven-site-plugin.version>
         <maven-project-info-reports-plugin.version>3.1.1</maven-project-info-reports-plugin.version>
+        <sonar.projectKey>juliengalet_reactor-flow</sonar.projectKey>
+        <sonar.organization>juliengalet</sonar.organization>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     </properties>
 
     <dependencies>
