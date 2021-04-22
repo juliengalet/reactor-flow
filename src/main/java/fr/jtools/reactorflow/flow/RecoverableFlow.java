@@ -2,9 +2,9 @@ package fr.jtools.reactorflow.flow;
 
 import fr.jtools.reactorflow.exception.FlowException;
 import fr.jtools.reactorflow.exception.RecoverableFlowException;
-import fr.jtools.reactorflow.state.FlowContext;
-import fr.jtools.reactorflow.state.Metadata;
-import fr.jtools.reactorflow.state.State;
+import fr.jtools.reactorflow.report.FlowContext;
+import fr.jtools.reactorflow.report.Metadata;
+import fr.jtools.reactorflow.report.Report;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -73,23 +73,23 @@ public final class RecoverableFlow<T extends FlowContext> extends Flow<T> {
    * It executes {@link RecoverableFlow#flow}, and if it fails with an exception valid for {@link RecoverableFlow#recoverOn},
    * it executes {@link RecoverableFlow#recover}.
    *
-   * @param previousState The previous {@link State}
-   * @param metadata      A {@link Metadata} object
-   * @return The new {@link State}
+   * @param context  The previous {@link T} context
+   * @param metadata A {@link Metadata} object
+   * @return A {@link Report}
    */
   @Override
-  protected final Mono<State<T>> execution(State<T> previousState, Metadata<?> metadata) {
-    return this.flow.execute(previousState, Metadata.from(metadata))
-        .flatMap(state -> {
+  protected final Mono<Report<T>> execution(T context, Metadata<?> metadata) {
+    return this.flow.execute(context, Metadata.from(metadata))
+        .flatMap(report -> {
           List<FlowException> exceptionsForFlow = this.flow.getErrorsForFlowAndChildren();
           if (
               !exceptionsForFlow.isEmpty() &&
                   exceptionsForFlow.stream().allMatch(exception -> exception.isRecoverable(this.recoverOn))
           ) {
             this.flow.cleanErrorsForFlowAndChildren();
-            return this.recover.execute(state, Metadata.from(metadata));
+            return this.recover.execute(report.getContext(), Metadata.from(metadata));
           }
-          return Mono.just(state);
+          return Mono.just(report);
         });
   }
 

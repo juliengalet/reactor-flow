@@ -1,7 +1,5 @@
 package fr.jtools.reactorflow.exception;
 
-import fr.jtools.reactorflow.flow.Flow;
-
 /**
  * Exception used to represent a functional exception
  * (example: an error due something you can handle in a business rule).
@@ -14,11 +12,11 @@ public class FlowFunctionalException extends FlowException {
     return FlowExceptionType.FUNCTIONAL;
   }
 
-  public FlowFunctionalException(Flow<?> flowConcerned, String message) {
-    super(flowConcerned, message);
+  public FlowFunctionalException(String message) {
+    super(message);
   }
 
-  public FlowFunctionalException(Flow<?> flowConcerned, Throwable cause, String message) {
-    super(cause, flowConcerned, message);
+  public FlowFunctionalException(Throwable cause, String message) {
+    super(cause, message);
   }
 }

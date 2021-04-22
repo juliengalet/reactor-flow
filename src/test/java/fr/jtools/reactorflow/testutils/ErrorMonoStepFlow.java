@@ -4,9 +4,9 @@ package fr.jtools.reactorflow.testutils;
 import fr.jtools.reactorflow.builder.StepFlowBuilder;
 import fr.jtools.reactorflow.flow.Step;
 import fr.jtools.reactorflow.flow.StepFlow;
-import fr.jtools.reactorflow.state.FlowContext;
-import fr.jtools.reactorflow.state.Metadata;
-import fr.jtools.reactorflow.state.State;
+import fr.jtools.reactorflow.report.FlowContext;
+import fr.jtools.reactorflow.report.Metadata;
+import fr.jtools.reactorflow.report.Report;
 import reactor.core.publisher.Mono;
 
 public final class ErrorMonoStepFlow<T extends FlowContext, M> implements Step<T, M> {
@@ -29,7 +29,7 @@ public final class ErrorMonoStepFlow<T extends FlowContext, M> implements Step<T
   }
 
   @Override
-  public Mono<State<T>> apply(StepFlow<T, M> thisFlow, State<T> state, Metadata<M> metadata) {
+  public Mono<Report<T>> apply(T context, Metadata<M> metadata) {
     return Mono.error(new RuntimeException(name + " mono error"));
   }
 }

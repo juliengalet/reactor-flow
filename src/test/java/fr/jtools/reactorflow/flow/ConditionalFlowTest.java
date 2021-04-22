@@ -1,10 +1,9 @@
-package fr.jtools.reactorflow;
+package fr.jtools.reactorflow.flow;
 
 import fr.jtools.reactorflow.builder.ConditionalFlowBuilder;
 import fr.jtools.reactorflow.exception.FlowBuilderException;
-import fr.jtools.reactorflow.flow.ConditionalFlow;
-import fr.jtools.reactorflow.state.FlowContext;
-import fr.jtools.reactorflow.state.State;
+import fr.jtools.reactorflow.report.FlowContext;
+import fr.jtools.reactorflow.report.Status;
 import fr.jtools.reactorflow.testutils.CustomContext;
 import fr.jtools.reactorflow.testutils.ErrorMonoStepFlow;
 import fr.jtools.reactorflow.testutils.ErrorRawStepFlow;
@@ -24,21 +23,21 @@ final class ConditionalFlowTest {
     ConditionalFlow<FlowContext> conditionalFlow = ConditionalFlowBuilder
         .defaultBuilder()
         .named("Test")
-        .condition(state -> Boolean.TRUE)
+        .condition(globalReport -> Boolean.TRUE)
         .caseTrue(SuccessStepFlow.flowNamed("Case True"))
         .caseFalse(SuccessStepFlow.flowNamed("Case False"))
         .build();
 
     StepVerifier
         .create(conditionalFlow.run(FlowContext.create()))
-        .assertNext(assertAndLog(state -> {
-          assertThat(state.getName()).isEqualTo("Test");
-          assertThat(state.getContext().get("Case True")).isEqualTo("Case True");
-          assertThat(state.getContext().get("Case False")).isNull();
-          assertThat(state.getStatus()).isEqualTo(State.Status.SUCCESS);
-          assertThat(state.getAllRecoveredErrors()).isEmpty();
-          assertThat(state.getAllErrors()).isEmpty();
-          assertThat(state.getAllWarnings()).isEmpty();
+        .assertNext(assertAndLog(globalReport -> {
+          assertThat(globalReport.getName()).isEqualTo("Test");
+          assertThat(globalReport.getContext().get("Case True")).isEqualTo("Case True");
+          assertThat(globalReport.getContext().get("Case False")).isNull();
+          assertThat(globalReport.getStatus()).isEqualTo(Status.SUCCESS);
+          assertThat(globalReport.getAllRecoveredErrors()).isEmpty();
+          assertThat(globalReport.getAllErrors()).isEmpty();
+          assertThat(globalReport.getAllWarnings()).isEmpty();
         }))
         .verifyComplete();
   }
@@ -48,21 +47,21 @@ final class ConditionalFlowTest {
     ConditionalFlow<FlowContext> conditionalFlow = ConditionalFlowBuilder
         .defaultBuilder()
         .named("Test")
-        .condition(state -> Boolean.TRUE)
+        .condition(globalReport -> Boolean.TRUE)
         .caseTrue(SuccessStepFlow.flowNamed("Case True"))
         .caseFalse(SuccessStepFlow.flowNamed("Case False"))
         .build();
 
     StepVerifier
         .create(conditionalFlow.cloneFlow("Test copy").run(FlowContext.create()))
-        .assertNext(assertAndLog(state -> {
-          assertThat(state.getName()).isEqualTo("Test copy");
-          assertThat(state.getContext().get("Case True")).isEqualTo("Case True");
-          assertThat(state.getContext().get("Case False")).isNull();
-          assertThat(state.getStatus()).isEqualTo(State.Status.SUCCESS);
-          assertThat(state.getAllRecoveredErrors()).isEmpty();
-          assertThat(state.getAllErrors()).isEmpty();
-          assertThat(state.getAllWarnings()).isEmpty();
+        .assertNext(assertAndLog(globalReport -> {
+          assertThat(globalReport.getName()).isEqualTo("Test copy");
+          assertThat(globalReport.getContext().get("Case True")).isEqualTo("Case True");
+          assertThat(globalReport.getContext().get("Case False")).isNull();
+          assertThat(globalReport.getStatus()).isEqualTo(Status.SUCCESS);
+          assertThat(globalReport.getAllRecoveredErrors()).isEmpty();
+          assertThat(globalReport.getAllErrors()).isEmpty();
+          assertThat(globalReport.getAllWarnings()).isEmpty();
         }))
         .verifyComplete();
   }
@@ -73,21 +72,21 @@ final class ConditionalFlowTest {
     ConditionalFlow<FlowContext> conditionalFlow = ConditionalFlowBuilder
         .defaultBuilder()
         .named("Test")
-        .condition(state -> Boolean.TRUE)
+        .condition(globalReport -> Boolean.TRUE)
         .caseTrue(SuccessStepFlow.flowNamed("Case True"))
         .caseFalse(SuccessStepFlow.flowNamed("Case False"))
         .build();
 
     StepVerifier
         .create(conditionalFlow.cloneFlow().run(FlowContext.create()))
-        .assertNext(assertAndLog(state -> {
-          assertThat(state.getName()).isEqualTo("Test");
-          assertThat(state.getContext().get("Case True")).isEqualTo("Case True");
-          assertThat(state.getContext().get("Case False")).isNull();
-          assertThat(state.getStatus()).isEqualTo(State.Status.SUCCESS);
-          assertThat(state.getAllRecoveredErrors()).isEmpty();
-          assertThat(state.getAllErrors()).isEmpty();
-          assertThat(state.getAllWarnings()).isEmpty();
+        .assertNext(assertAndLog(globalReport -> {
+          assertThat(globalReport.getName()).isEqualTo("Test");
+          assertThat(globalReport.getContext().get("Case True")).isEqualTo("Case True");
+          assertThat(globalReport.getContext().get("Case False")).isNull();
+          assertThat(globalReport.getStatus()).isEqualTo(Status.SUCCESS);
+          assertThat(globalReport.getAllRecoveredErrors()).isEmpty();
+          assertThat(globalReport.getAllErrors()).isEmpty();
+          assertThat(globalReport.getAllWarnings()).isEmpty();
         }))
         .verifyComplete();
   }
@@ -97,21 +96,21 @@ final class ConditionalFlowTest {
     ConditionalFlow<CustomContext> conditionalFlow = ConditionalFlowBuilder
         .builderForContextOfType(CustomContext.class)
         .named("Test")
-        .condition(state -> Boolean.TRUE)
+        .condition(globalReport -> Boolean.TRUE)
         .caseTrue(SuccessStepFlow.flowNamed("Case True"))
         .caseFalse(SuccessStepFlow.flowNamed("Case False"))
         .build();
 
     StepVerifier
         .create(conditionalFlow.run(new CustomContext()))
-        .assertNext(assertAndLog(state -> {
-          assertThat(state.getContext().customField).isNotNull();
-          assertThat(state.getContext().get("Case True")).isEqualTo("Case True");
-          assertThat(state.getContext().get("Case False")).isNull();
-          assertThat(state.getStatus()).isEqualTo(State.Status.SUCCESS);
-          assertThat(state.getAllRecoveredErrors()).isEmpty();
-          assertThat(state.getAllErrors()).isEmpty();
-          assertThat(state.getAllWarnings()).isEmpty();
+        .assertNext(assertAndLog(globalReport -> {
+          assertThat(globalReport.getContext().customField).isNotNull();
+          assertThat(globalReport.getContext().get("Case True")).isEqualTo("Case True");
+          assertThat(globalReport.getContext().get("Case False")).isNull();
+          assertThat(globalReport.getStatus()).isEqualTo(Status.SUCCESS);
+          assertThat(globalReport.getAllRecoveredErrors()).isEmpty();
+          assertThat(globalReport.getAllErrors()).isEmpty();
+          assertThat(globalReport.getAllWarnings()).isEmpty();
         }))
         .verifyComplete();
   }
@@ -121,20 +120,20 @@ final class ConditionalFlowTest {
     ConditionalFlow<FlowContext> conditionalFlow = ConditionalFlowBuilder
         .defaultBuilder()
         .named("Test")
-        .condition(state -> Boolean.TRUE)
+        .condition(globalReport -> Boolean.TRUE)
         .caseTrue(ErrorStepFlow.flowNamed("Case True"))
         .caseFalse(SuccessStepFlow.flowNamed("Case False"))
         .build();
 
     StepVerifier
         .create(conditionalFlow.run(FlowContext.create()))
-        .assertNext(assertAndLog(state -> {
-          assertThat(state.getContext().get("Case True")).isNull();
-          assertThat(state.getContext().get("Case False")).isNull();
-          assertThat(state.getStatus()).isEqualTo(State.Status.ERROR);
-          assertThat(state.getAllErrors()).hasSize(1);
-          assertThat(state.getAllRecoveredErrors()).isEmpty();
-          assertThat(state.getAllWarnings()).isEmpty();
+        .assertNext(assertAndLog(globalReport -> {
+          assertThat(globalReport.getContext().get("Case True")).isNull();
+          assertThat(globalReport.getContext().get("Case False")).isNull();
+          assertThat(globalReport.getStatus()).isEqualTo(Status.ERROR);
+          assertThat(globalReport.getAllErrors()).hasSize(1);
+          assertThat(globalReport.getAllRecoveredErrors()).isEmpty();
+          assertThat(globalReport.getAllWarnings()).isEmpty();
         }))
         .verifyComplete();
   }
@@ -144,20 +143,20 @@ final class ConditionalFlowTest {
     ConditionalFlow<FlowContext> conditionalFlow = ConditionalFlowBuilder
         .defaultBuilder()
         .named("Test")
-        .condition(state -> Boolean.TRUE)
+        .condition(globalReport -> Boolean.TRUE)
         .caseTrue(ErrorRawStepFlow.flowNamed("Case True"))
         .caseFalse(SuccessStepFlow.flowNamed("Case False"))
         .build();
 
     StepVerifier
         .create(conditionalFlow.run(FlowContext.create()))
-        .assertNext(assertAndLog(state -> {
-          assertThat(state.getContext().get("Case True")).isNull();
-          assertThat(state.getContext().get("Case False")).isNull();
-          assertThat(state.getStatus()).isEqualTo(State.Status.ERROR);
-          assertThat(state.getAllErrors()).hasSize(1);
-          assertThat(state.getAllRecoveredErrors()).isEmpty();
-          assertThat(state.getAllWarnings()).isEmpty();
+        .assertNext(assertAndLog(globalReport -> {
+          assertThat(globalReport.getContext().get("Case True")).isNull();
+          assertThat(globalReport.getContext().get("Case False")).isNull();
+          assertThat(globalReport.getStatus()).isEqualTo(Status.ERROR);
+          assertThat(globalReport.getAllErrors()).hasSize(1);
+          assertThat(globalReport.getAllRecoveredErrors()).isEmpty();
+          assertThat(globalReport.getAllWarnings()).isEmpty();
         }))
         .verifyComplete();
   }
@@ -167,20 +166,20 @@ final class ConditionalFlowTest {
     ConditionalFlow<FlowContext> conditionalFlow = ConditionalFlowBuilder
         .defaultBuilder()
         .named("Test")
-        .condition(state -> Boolean.TRUE)
+        .condition(globalReport -> Boolean.TRUE)
         .caseTrue(ErrorMonoStepFlow.flowNamed("Case True"))
         .caseFalse(SuccessStepFlow.flowNamed("Case False"))
         .build();
 
     StepVerifier
         .create(conditionalFlow.run(FlowContext.create()))
-        .assertNext(assertAndLog(state -> {
-          assertThat(state.getContext().get("Case True")).isNull();
-          assertThat(state.getContext().get("Case False")).isNull();
-          assertThat(state.getStatus()).isEqualTo(State.Status.ERROR);
-          assertThat(state.getAllErrors()).hasSize(1);
-          assertThat(state.getAllRecoveredErrors()).isEmpty();
-          assertThat(state.getAllWarnings()).isEmpty();
+        .assertNext(assertAndLog(globalReport -> {
+          assertThat(globalReport.getContext().get("Case True")).isNull();
+          assertThat(globalReport.getContext().get("Case False")).isNull();
+          assertThat(globalReport.getStatus()).isEqualTo(Status.ERROR);
+          assertThat(globalReport.getAllErrors()).hasSize(1);
+          assertThat(globalReport.getAllRecoveredErrors()).isEmpty();
+          assertThat(globalReport.getAllWarnings()).isEmpty();
         }))
         .verifyComplete();
   }
@@ -190,20 +189,20 @@ final class ConditionalFlowTest {
     ConditionalFlow<FlowContext> conditionalFlow = ConditionalFlowBuilder
         .defaultBuilder()
         .named("Test")
-        .condition(state -> Boolean.TRUE)
+        .condition(globalReport -> Boolean.TRUE)
         .caseTrue(WarningStepFlow.flowNamed("Case True"))
         .caseFalse(SuccessStepFlow.flowNamed("Case False"))
         .build();
 
     StepVerifier
         .create(conditionalFlow.run(FlowContext.create()))
-        .assertNext(assertAndLog(state -> {
-          assertThat(state.getContext().get("Case True")).isEqualTo("Case True");
-          assertThat(state.getContext().get("Case False")).isNull();
-          assertThat(state.getStatus()).isEqualTo(State.Status.WARNING);
-          assertThat(state.getAllRecoveredErrors()).isEmpty();
-          assertThat(state.getAllErrors()).isEmpty();
-          assertThat(state.getAllWarnings()).hasSize(1);
+        .assertNext(assertAndLog(globalReport -> {
+          assertThat(globalReport.getContext().get("Case True")).isEqualTo("Case True");
+          assertThat(globalReport.getContext().get("Case False")).isNull();
+          assertThat(globalReport.getStatus()).isEqualTo(Status.WARNING);
+          assertThat(globalReport.getAllRecoveredErrors()).isEmpty();
+          assertThat(globalReport.getAllErrors()).isEmpty();
+          assertThat(globalReport.getAllWarnings()).hasSize(1);
         }))
         .verifyComplete();
   }
@@ -213,21 +212,21 @@ final class ConditionalFlowTest {
     ConditionalFlow<FlowContext> conditionalFlow = ConditionalFlowBuilder
         .defaultBuilder()
         .named("Test")
-        .condition(state -> Boolean.FALSE)
+        .condition(globalReport -> Boolean.FALSE)
         .caseTrue(SuccessStepFlow.flowNamed("Case True"))
         .caseFalse(SuccessStepFlow.flowNamed("Case False"))
         .build();
 
     StepVerifier
         .create(conditionalFlow.run(FlowContext.create()))
-        .assertNext(assertAndLog(state -> {
-          assertThat(state.getName()).isEqualTo("Test");
-          assertThat(state.getContext().get("Case False")).isEqualTo("Case False");
-          assertThat(state.getContext().get("Case True")).isNull();
-          assertThat(state.getStatus()).isEqualTo(State.Status.SUCCESS);
-          assertThat(state.getAllRecoveredErrors()).isEmpty();
-          assertThat(state.getAllErrors()).isEmpty();
-          assertThat(state.getAllWarnings()).isEmpty();
+        .assertNext(assertAndLog(globalReport -> {
+          assertThat(globalReport.getName()).isEqualTo("Test");
+          assertThat(globalReport.getContext().get("Case False")).isEqualTo("Case False");
+          assertThat(globalReport.getContext().get("Case True")).isNull();
+          assertThat(globalReport.getStatus()).isEqualTo(Status.SUCCESS);
+          assertThat(globalReport.getAllRecoveredErrors()).isEmpty();
+          assertThat(globalReport.getAllErrors()).isEmpty();
+          assertThat(globalReport.getAllWarnings()).isEmpty();
         }))
         .verifyComplete();
   }
@@ -237,20 +236,20 @@ final class ConditionalFlowTest {
     ConditionalFlow<FlowContext> conditionalFlow = ConditionalFlowBuilder
         .defaultBuilder()
         .named("Test")
-        .condition(state -> Boolean.FALSE)
+        .condition(globalReport -> Boolean.FALSE)
         .caseTrue(SuccessStepFlow.flowNamed("Case True"))
         .caseFalse(ErrorStepFlow.flowNamed("Case False"))
         .build();
 
     StepVerifier
         .create(conditionalFlow.run(FlowContext.create()))
-        .assertNext(assertAndLog(state -> {
-          assertThat(state.getContext().get("Case True")).isNull();
-          assertThat(state.getContext().get("Case False")).isNull();
-          assertThat(state.getStatus()).isEqualTo(State.Status.ERROR);
-          assertThat(state.getAllErrors()).hasSize(1);
-          assertThat(state.getAllRecoveredErrors()).isEmpty();
-          assertThat(state.getAllWarnings()).isEmpty();
+        .assertNext(assertAndLog(globalReport -> {
+          assertThat(globalReport.getContext().get("Case True")).isNull();
+          assertThat(globalReport.getContext().get("Case False")).isNull();
+          assertThat(globalReport.getStatus()).isEqualTo(Status.ERROR);
+          assertThat(globalReport.getAllErrors()).hasSize(1);
+          assertThat(globalReport.getAllRecoveredErrors()).isEmpty();
+          assertThat(globalReport.getAllWarnings()).isEmpty();
         }))
         .verifyComplete();
   }
@@ -260,20 +259,20 @@ final class ConditionalFlowTest {
     ConditionalFlow<FlowContext> conditionalFlow = ConditionalFlowBuilder
         .defaultBuilder()
         .named("Test")
-        .condition(state -> Boolean.FALSE)
+        .condition(globalReport -> Boolean.FALSE)
         .caseTrue(SuccessStepFlow.flowNamed("Case True"))
         .caseFalse(WarningStepFlow.flowNamed("Case False"))
         .build();
 
     StepVerifier
         .create(conditionalFlow.run(FlowContext.create()))
-        .assertNext(assertAndLog(state -> {
-          assertThat(state.getContext().get("Case False")).isEqualTo("Case False");
-          assertThat(state.getContext().get("Case True")).isNull();
-          assertThat(state.getStatus()).isEqualTo(State.Status.WARNING);
-          assertThat(state.getAllRecoveredErrors()).isEmpty();
-          assertThat(state.getAllErrors()).isEmpty();
-          assertThat(state.getAllWarnings()).hasSize(1);
+        .assertNext(assertAndLog(globalReport -> {
+          assertThat(globalReport.getContext().get("Case False")).isEqualTo("Case False");
+          assertThat(globalReport.getContext().get("Case True")).isNull();
+          assertThat(globalReport.getStatus()).isEqualTo(Status.WARNING);
+          assertThat(globalReport.getAllRecoveredErrors()).isEmpty();
+          assertThat(globalReport.getAllErrors()).isEmpty();
+          assertThat(globalReport.getAllWarnings()).hasSize(1);
         }))
         .verifyComplete();
   }
@@ -283,7 +282,7 @@ final class ConditionalFlowTest {
     ConditionalFlow<FlowContext> conditionalFlow = ConditionalFlowBuilder
         .defaultBuilder()
         .named("Test")
-        .condition(state -> {
+        .condition(globalReport -> {
           throw new RuntimeException("Raw error");
         })
         .caseTrue(SuccessStepFlow.flowNamed("Case True"))
@@ -292,13 +291,13 @@ final class ConditionalFlowTest {
 
     StepVerifier
         .create(conditionalFlow.run(FlowContext.create()))
-        .assertNext(assertAndLog(state -> {
-          assertThat(state.getContext().get("Case False")).isNull();
-          assertThat(state.getContext().get("Case True")).isNull();
-          assertThat(state.getStatus()).isEqualTo(State.Status.ERROR);
-          assertThat(state.getAllRecoveredErrors()).isEmpty();
-          assertThat(state.getAllErrors()).hasSize(1);
-          assertThat(state.getAllWarnings()).isEmpty();
+        .assertNext(assertAndLog(globalReport -> {
+          assertThat(globalReport.getContext().get("Case False")).isNull();
+          assertThat(globalReport.getContext().get("Case True")).isNull();
+          assertThat(globalReport.getStatus()).isEqualTo(Status.ERROR);
+          assertThat(globalReport.getAllRecoveredErrors()).isEmpty();
+          assertThat(globalReport.getAllErrors()).hasSize(1);
+          assertThat(globalReport.getAllWarnings()).isEmpty();
         }))
         .verifyComplete();
   }
@@ -308,7 +307,7 @@ final class ConditionalFlowTest {
     assertThatExceptionOfType(FlowBuilderException.class).isThrownBy(() -> ConditionalFlowBuilder
         .defaultBuilder()
         .named(null)
-        .condition(state -> Boolean.TRUE)
+        .condition(globalReport -> Boolean.TRUE)
         .caseTrue(SuccessStepFlow.flowNamed("Case True"))
         .caseFalse(SuccessStepFlow.flowNamed("Case False"))
         .build()
@@ -320,7 +319,7 @@ final class ConditionalFlowTest {
     assertThatExceptionOfType(FlowBuilderException.class).isThrownBy(() -> ConditionalFlowBuilder
         .defaultBuilder()
         .named("Test")
-        .condition(state -> Boolean.TRUE)
+        .condition(globalReport -> Boolean.TRUE)
         .caseTrue(SuccessStepFlow.flowNamed("Case True"))
         .caseFalse(null)
         .build()
@@ -332,7 +331,7 @@ final class ConditionalFlowTest {
     assertThatExceptionOfType(FlowBuilderException.class).isThrownBy(() -> ConditionalFlowBuilder
         .defaultBuilder()
         .named("Test")
-        .condition(state -> Boolean.TRUE)
+        .condition(globalReport -> Boolean.TRUE)
         .caseTrue(null)
         .caseFalse(SuccessStepFlow.flowNamed("Case False"))
         .build()

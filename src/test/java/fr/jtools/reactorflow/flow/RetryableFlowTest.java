@@ -1,4 +1,4 @@
-package fr.jtools.reactorflow;
+package fr.jtools.reactorflow.flow;
 
 public class RetryableFlowTest {
 }

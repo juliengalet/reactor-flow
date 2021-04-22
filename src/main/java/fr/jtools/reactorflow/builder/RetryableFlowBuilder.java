@@ -4,7 +4,7 @@ import fr.jtools.reactorflow.exception.FlowBuilderException;
 import fr.jtools.reactorflow.exception.RecoverableFlowException;
 import fr.jtools.reactorflow.flow.Flow;
 import fr.jtools.reactorflow.flow.RetryableFlow;
-import fr.jtools.reactorflow.state.FlowContext;
+import fr.jtools.reactorflow.report.FlowContext;
 
 import java.util.Objects;
 

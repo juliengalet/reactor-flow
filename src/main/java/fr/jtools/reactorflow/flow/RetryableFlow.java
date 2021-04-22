@@ -2,9 +2,9 @@ package fr.jtools.reactorflow.flow;
 
 import fr.jtools.reactorflow.exception.FlowException;
 import fr.jtools.reactorflow.exception.RecoverableFlowException;
-import fr.jtools.reactorflow.state.FlowContext;
-import fr.jtools.reactorflow.state.Metadata;
-import fr.jtools.reactorflow.state.State;
+import fr.jtools.reactorflow.report.FlowContext;
+import fr.jtools.reactorflow.report.Metadata;
+import fr.jtools.reactorflow.report.Report;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
@@ -97,13 +97,13 @@ public final class RetryableFlow<T extends FlowContext> extends Flow<T> {
    * It executes {@link RetryableFlow#flow}, and if it fails with an exception valid for {@link RetryableFlow#retryOn},
    * it executes the next {@link RetryableFlow#flowsToRetry}, after a delay of {@link RetryableFlow#delay} milliseconds.
    *
-   * @param previousState The previous {@link State}
-   * @param metadata      A {@link Metadata} object
-   * @return The new {@link State}
+   * @param context  The previous {@link T} context
+   * @param metadata A {@link Metadata} object
+   * @return A {@link Report}
    */
   @Override
-  protected final Mono<State<T>> execution(State<T> previousState, Metadata<?> metadata) {
-    return this.tryExecution(previousState, new AtomicInteger(0), this.flow, metadata);
+  protected final Mono<Report<T>> execution(T context, Metadata<?> metadata) {
+    return this.tryExecution(context, new AtomicInteger(0), this.flow, metadata);
   }
 
   /**
@@ -162,15 +162,15 @@ public final class RetryableFlow<T extends FlowContext> extends Flow<T> {
    *   <li>call itself recursively to try the execution of the next {@link Flow}</li>
    * </ul>
    *
-   * @param previousState The previous {@link State}
-   * @param counter       A counter that stored the number of retried {@link Flow}
-   * @param flow          The {@link Flow} to try
-   * @param metadata      A {@link Metadata} object
-   * @return The new {@link State}
+   * @param context  The previous {@link T} context
+   * @param counter  A counter that stored the number of retried {@link Flow}
+   * @param flow     The {@link Flow} to try
+   * @param metadata A {@link Metadata} object
+   * @return A {@link Report}
    */
-  private Mono<State<T>> tryExecution(State<T> previousState, AtomicInteger counter, Flow<T> flow, Metadata<?> metadata) {
-    return flow.execute(previousState, Metadata.from(metadata))
-        .flatMap(state -> {
+  private Mono<Report<T>> tryExecution(T context, AtomicInteger counter, Flow<T> flow, Metadata<?> metadata) {
+    return flow.execute(context, Metadata.from(metadata))
+        .flatMap(report -> {
           int count = counter.getAndIncrement();
           List<FlowException> exceptionsForFlow = flow.getErrorsForFlowAndChildren();
           if (
@@ -182,14 +182,14 @@ public final class RetryableFlow<T extends FlowContext> extends Flow<T> {
             return Mono
                 .delay(Duration.ofMillis(delay))
                 .flatMap(unused -> this.tryExecution(
-                    state,
+                    report.getContext(),
                     counter,
                     this.flowsToRetry.get(count),
                     Metadata.from(metadata)
                 ));
           }
 
-          return Mono.just(state);
+          return Mono.just(report);
         });
   }
 }

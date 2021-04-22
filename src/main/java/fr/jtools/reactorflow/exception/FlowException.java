@@ -1,12 +1,12 @@
 package fr.jtools.reactorflow.exception;
 
 import fr.jtools.reactorflow.flow.Flow;
-import fr.jtools.reactorflow.utils.console.ConsoleStyle;
-import fr.jtools.reactorflow.utils.console.PrettyPrint;
+import fr.jtools.reactorflow.utils.ConsoleStyle;
+import fr.jtools.reactorflow.utils.PrettyPrint;
 
 import java.util.Objects;
 
-import static fr.jtools.reactorflow.utils.console.LoggerUtils.colorize;
+import static fr.jtools.reactorflow.utils.LoggerUtils.colorize;
 
 /**
  * Abstract exception used to generate all types of exceptions used in this library.
@@ -23,7 +23,18 @@ public abstract class FlowException extends RuntimeException implements PrettyPr
   /**
    * The {@link Flow} concerned by the exception (null if it is a {@link FlowBuilderException}).
    */
-  private final transient Flow<?> flowConcerned;
+  private transient Flow<?> flowConcerned;
+
+  /**
+   * Set the {@link FlowException#flowConcerned}.
+   *
+   * @param flowConcerned The {@link FlowException#flowConcerned}
+   * @return The {@link FlowException}
+   */
+  public FlowException flowConcerned(Flow<?> flowConcerned) {
+    this.flowConcerned = flowConcerned;
+    return this;
+  }
 
   /**
    * Get the {@link FlowException#flowConcerned}.
@@ -35,25 +46,22 @@ public abstract class FlowException extends RuntimeException implements PrettyPr
   }
 
   /**
-   * Construct an exception from a {@link FlowException#flowConcerned} and a message.
+   * Construct an exception from a message.
    *
-   * @param flowConcerned {@link FlowException#flowConcerned}
-   * @param message       The message
+   * @param message The message
    */
-  protected FlowException(Flow<?> flowConcerned, String message) {
+  protected FlowException(String message) {
     super(message);
-    this.flowConcerned = flowConcerned;
   }
 
   /**
-   * Construct an exception from a {@link FlowException#flowConcerned}, a message, and the original {@link Throwable}.
+   * Construct an exception from a message and the original {@link Throwable}.
    *
-   * @param flowConcerned {@link FlowException#flowConcerned}
-   * @param message       The message
+   * @param cause   The original {@link Throwable}
+   * @param message The message
    */
-  protected FlowException(Throwable cause, Flow<?> flowConcerned, String message) {
+  protected FlowException(Throwable cause, String message) {
     super(message, cause);
-    this.flowConcerned = flowConcerned;
   }
 
   /**

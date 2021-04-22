@@ -3,9 +3,9 @@ package fr.jtools.reactorflow.testutils;
 import fr.jtools.reactorflow.builder.StepFlowBuilder;
 import fr.jtools.reactorflow.flow.Step;
 import fr.jtools.reactorflow.flow.StepFlow;
-import fr.jtools.reactorflow.state.FlowContext;
-import fr.jtools.reactorflow.state.Metadata;
-import fr.jtools.reactorflow.state.State;
+import fr.jtools.reactorflow.report.FlowContext;
+import fr.jtools.reactorflow.report.Metadata;
+import fr.jtools.reactorflow.report.Report;
 import reactor.core.publisher.Mono;
 
 public final class SuccessStepFlow<T extends FlowContext, M> implements Step<T, M> {
@@ -28,8 +28,8 @@ public final class SuccessStepFlow<T extends FlowContext, M> implements Step<T, 
   }
 
   @Override
-  public Mono<State<T>> apply(StepFlow<T, M> thisFlow, State<T> state, Metadata<M> metadata) {
-    state.getContext().put(this.name, this.name);
-    return Mono.just(state);
+  public Mono<Report<T>> apply(T context, Metadata<M> metadata) {
+    context.put(this.name, this.name);
+    return Mono.just(Report.success(context));
   }
 }

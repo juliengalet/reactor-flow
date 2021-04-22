@@ -1,9 +1,9 @@
 package fr.jtools.reactorflow.flow;
 
 import fr.jtools.reactorflow.exception.FlowTechnicalException;
-import fr.jtools.reactorflow.state.FlowContext;
-import fr.jtools.reactorflow.state.Metadata;
-import fr.jtools.reactorflow.state.State;
+import fr.jtools.reactorflow.report.FlowContext;
+import fr.jtools.reactorflow.report.Metadata;
+import fr.jtools.reactorflow.report.Report;
 import reactor.core.publisher.Mono;
 
 import java.util.Collections;
@@ -78,24 +78,23 @@ public final class StepFlow<T extends FlowContext, M> extends Flow<T> {
    * {@link ParallelFlow} execution.
    * Executes {@link StepFlow#execution}.
    *
-   * @param previousState The previous {@link State}
-   * @param metadata      A {@link Metadata} object
-   * @return The new {@link State}
+   * @param context  The previous {@link T} context
+   * @param metadata A {@link Metadata} object
+   * @return A {@link Report}
    */
   @Override
   @SuppressWarnings("unchecked")
-  protected final Mono<State<T>> execution(State<T> previousState, Metadata<?> metadata) {
+  protected final Mono<Report<T>> execution(T context, Metadata<?> metadata) {
     return Mono
         .defer(() -> Mono.just(((Metadata<M>) metadata)))
         .flatMap(meta -> execution.apply(
-            this,
-            previousState,
+            context,
             Metadata.create(meta.getData()).addErrors(meta.getErrors()).addWarnings(meta.getWarnings())
         ))
-        .onErrorResume(ClassCastException.class, error -> {
-          this.addError(new FlowTechnicalException(this, error, String.format("Can not convert metadata to target type: %s", error.getMessage().split(" \\(")[0])));
-          return Mono.just(previousState);
-        });
+        .onErrorResume(ClassCastException.class, error -> Mono.just(Report.error(
+            context,
+            new FlowTechnicalException(error, String.format("Can not convert metadata to target type: %s", error.getMessage().split(" \\(")[0]))
+        )));
   }
 
   /**

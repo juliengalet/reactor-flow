@@ -1,11 +1,12 @@
 package fr.jtools.reactorflow.flow;
 
 import fr.jtools.reactorflow.builder.StepFlowBuilder;
-import fr.jtools.reactorflow.state.FlowContext;
-import fr.jtools.reactorflow.state.Metadata;
-import fr.jtools.reactorflow.state.State;
-import fr.jtools.reactorflow.utils.TriFunction;
+import fr.jtools.reactorflow.report.FlowContext;
+import fr.jtools.reactorflow.report.Metadata;
+import fr.jtools.reactorflow.report.Report;
 import reactor.core.publisher.Mono;
+
+import java.util.function.BiFunction;
 
 /**
  * An interface defining a {@link StepFlow} execution.
@@ -14,14 +15,14 @@ import reactor.core.publisher.Mono;
  * @param <T> Context type
  * @param <M> Metadata type
  */
-public interface Step<T extends FlowContext, M> extends TriFunction<StepFlow<T, M>, State<T>, Metadata<M>, Mono<State<T>>> {
+public interface Step<T extends FlowContext, M> extends BiFunction<T, Metadata<M>, Mono<Report<T>>> {
   /**
    * Build a {@link StepFlow} from a class instance implementing {@link Step} interface.
    *
    * @param name {@link StepFlow} name
    * @return A {@link StepFlow}
    */
-  default StepFlow<T, M> buildFlowNamed(String name) {
+  default StepFlow<T, M> build(String name) {
     return StepFlowBuilder
         .<T, M>defaultBuilder()
         .named(name)
@@ -38,7 +39,7 @@ public interface Step<T extends FlowContext, M> extends TriFunction<StepFlow<T, 
    * @param <M>  Metadata type
    * @return A {@link StepFlow}
    */
-  static <T extends FlowContext, M> StepFlow<T, M> buildFlowNamed(Step<T, M> step, String name) {
+  static <T extends FlowContext, M> StepFlow<T, M> build(Step<T, M> step, String name) {
     return StepFlowBuilder
         .<T, M>defaultBuilder()
         .named(name)

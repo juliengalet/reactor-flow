@@ -3,8 +3,7 @@ package fr.jtools.reactorflow.builder;
 import fr.jtools.reactorflow.exception.FlowBuilderException;
 import fr.jtools.reactorflow.flow.Flow;
 import fr.jtools.reactorflow.flow.ParallelFlow;
-import fr.jtools.reactorflow.state.FlowContext;
-import fr.jtools.reactorflow.state.State;
+import fr.jtools.reactorflow.report.FlowContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,8 +12,8 @@ import java.util.function.BinaryOperator;
 import java.util.function.Function;
 
 public final class ParallelFlowBuilder {
-  public static <T extends FlowContext> BinaryOperator<State<T>> defaultMergeStrategy() {
-    return (state1, state2) -> state1;
+  public static <T extends FlowContext> BinaryOperator<T> defaultMergeStrategy() {
+    return (context1, context2) -> context1;
   }
 
   public static <T extends FlowContext, M> ParallelFlowBuilder.Named<T, M> defaultBuilder() {
@@ -41,7 +40,7 @@ public final class ParallelFlowBuilder {
     private final List<Flow<T>> flows = new ArrayList<>();
     private Function<T, ? extends Iterable<M>> parallelizeFromArray;
     private Flow<T> flowToParallelize;
-    private BinaryOperator<State<T>> mergeStrategy;
+    private BinaryOperator<T> mergeStrategy;
     private String name;
 
     private BuildSteps() {
@@ -63,15 +62,6 @@ public final class ParallelFlowBuilder {
       return this;
     }
 
-    @SafeVarargs
-    public final ParallelFlowBuilder.MergeStrategy<T, M> parallelize(Flow<T>... flows) {
-      if (Objects.isNull(flows)) {
-        throw new FlowBuilderException(ParallelFlowBuilder.class, "flows are mandatory");
-      }
-      this.flows.addAll(List.of(flows));
-      return this;
-    }
-
     public final ParallelFlowBuilder.ParallelizedFlow<T, M> parallelizeFromArray(Function<T, ? extends Iterable<M>> parallelizeFromArray) {
       if (Objects.isNull(parallelizeFromArray)) {
         throw new FlowBuilderException(ParallelFlowBuilder.class, "parallelizeFromArray is mandatory");
@@ -88,7 +78,7 @@ public final class ParallelFlowBuilder {
       return this;
     }
 
-    public final ParallelFlowBuilder.Build<T, M> mergeStrategy(BinaryOperator<State<T>> mergeStrategy) {
+    public final ParallelFlowBuilder.Build<T, M> mergeStrategy(BinaryOperator<T> mergeStrategy) {
       if (Objects.isNull(mergeStrategy)) {
         throw new FlowBuilderException(ParallelFlowBuilder.class, "mergeStrategy is mandatory");
       }
@@ -108,8 +98,6 @@ public final class ParallelFlowBuilder {
   public interface Parallelize<T extends FlowContext, M> {
     ParallelFlowBuilder.MergeStrategy<T, M> parallelize(List<Flow<T>> flows);
 
-    ParallelFlowBuilder.MergeStrategy<T, M> parallelize(Flow<T>... flows);
-
     ParallelFlowBuilder.ParallelizedFlow<T, M> parallelizeFromArray(Function<T, ? extends Iterable<M>> parallelizeFromArray);
 
   }
@@ -119,7 +107,7 @@ public final class ParallelFlowBuilder {
   }
 
   public interface MergeStrategy<T extends FlowContext, M> {
-    ParallelFlowBuilder.Build<T, M> mergeStrategy(BinaryOperator<State<T>> mergeStrategy);
+    ParallelFlowBuilder.Build<T, M> mergeStrategy(BinaryOperator<T> mergeStrategy);
   }
 
   public interface Build<T extends FlowContext, M> {

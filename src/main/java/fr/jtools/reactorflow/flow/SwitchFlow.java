@@ -1,9 +1,9 @@
 package fr.jtools.reactorflow.flow;
 
 import fr.jtools.reactorflow.exception.FlowTechnicalException;
-import fr.jtools.reactorflow.state.FlowContext;
-import fr.jtools.reactorflow.state.Metadata;
-import fr.jtools.reactorflow.state.State;
+import fr.jtools.reactorflow.report.FlowContext;
+import fr.jtools.reactorflow.report.Metadata;
+import fr.jtools.reactorflow.report.Report;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -34,7 +34,7 @@ public final class SwitchFlow<T extends FlowContext> extends Flow<T> {
   /**
    * The switch condition.
    */
-  private final Function<State<T>, String> switchCondition;
+  private final Function<T, String> switchCondition;
 
   /**
    * Static method used to create a {@link SwitchFlow}.
@@ -46,11 +46,11 @@ public final class SwitchFlow<T extends FlowContext> extends Flow<T> {
    * @param <T>             Context type
    * @return A {@link SwitchFlow}
    */
-  public static <T extends FlowContext> SwitchFlow<T> create(String name, Function<State<T>, String> switchCondition, Map<String, Flow<T>> flows, Flow<T> defaultFlow) {
+  public static <T extends FlowContext> SwitchFlow<T> create(String name, Function<T, String> switchCondition, Map<String, Flow<T>> flows, Flow<T> defaultFlow) {
     return new SwitchFlow<>(name, switchCondition, flows, defaultFlow);
   }
 
-  private SwitchFlow(String name, Function<State<T>, String> switchCondition, Map<String, Flow<T>> flows, Flow<T> defaultFlow) {
+  private SwitchFlow(String name, Function<T, String> switchCondition, Map<String, Flow<T>> flows, Flow<T> defaultFlow) {
     this.name = name;
     this.switchCondition = switchCondition;
     this.flows = flows;
@@ -102,16 +102,15 @@ public final class SwitchFlow<T extends FlowContext> extends Flow<T> {
    * It chooses the matching {@link Flow} in {@link SwitchFlow#flows} {@link Map} depending on {@link SwitchFlow#switchCondition},
    * and executes it, or executes {@link SwitchFlow#defaultFlow} if there is no match.
    *
-   * @param previousState The previous {@link State}
-   * @param metadata      A {@link Metadata} object
-   * @return The new {@link State}
+   * @param context  The previous {@link T} context
+   * @param metadata A {@link Metadata} object
+   * @return A {@link Report}
    */
   @Override
-  protected Mono<State<T>> execution(State<T> previousState, Metadata<?> metadata) {
+  protected Mono<Report<T>> execution(T context, Metadata<?> metadata) {
     return Mono
-        .defer(() -> Mono.just(this.switchCondition.apply(previousState)))
+        .defer(() -> Mono.just(this.switchCondition.apply(context)))
         .onErrorMap(error -> new FlowTechnicalException(
-            this,
             error,
             String.format("Error occurred during switchCondition evaluation: %s", error.getMessage())
         ))
@@ -119,10 +118,10 @@ public final class SwitchFlow<T extends FlowContext> extends Flow<T> {
           Flow<T> toExecute = this.flows.get(switchResult);
 
           if (Objects.nonNull(toExecute)) {
-            return toExecute.execute(previousState, metadata);
+            return toExecute.execute(context, metadata);
           }
 
-          return this.defaultFlow.execute(previousState, metadata);
+          return this.defaultFlow.execute(context, metadata);
         });
   }
 

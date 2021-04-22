@@ -1,8 +1,8 @@
 package fr.jtools.reactorflow.flow;
 
-import fr.jtools.reactorflow.state.FlowContext;
-import fr.jtools.reactorflow.state.Metadata;
-import fr.jtools.reactorflow.state.State;
+import fr.jtools.reactorflow.report.FlowContext;
+import fr.jtools.reactorflow.report.Metadata;
+import fr.jtools.reactorflow.report.Report;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
@@ -64,25 +64,25 @@ public final class SequentialFlow<T extends FlowContext> extends Flow<T> {
    * and executes {@link SequentialFlow#finalFlow} when all {@link SequentialFlow#flows} are executed,
    * or after the first one with an error.
    *
-   * @param previousState The previous {@link State}
-   * @param metadata      A {@link Metadata} object
-   * @return The new {@link State}
+   * @param context  The previous {@link T} context
+   * @param metadata A {@link Metadata} object
+   * @return A {@link Report}
    */
   @Override
-  protected final Mono<State<T>> execution(State<T> previousState, Metadata<?> metadata) {
-    Mono<State<T>> newState = Mono.just(previousState);
+  protected final Mono<Report<T>> execution(T context, Metadata<?> metadata) {
+    Mono<Report<T>> newState = Mono.just(Report.success(context));
 
     for (Flow<T> flow : this.flows) {
       newState = newState
-          .flatMap(state -> this.executeFlow(flow, state, Metadata.from(metadata)));
+          .flatMap(report -> this.executeFlow(flow, report, Metadata.from(metadata)));
     }
 
     return newState
-        .flatMap(stateBeforeFinalFlow -> Objects.isNull(this.finalFlow) ?
-            Mono.just(stateBeforeFinalFlow) :
+        .flatMap(reportBeforeFinalFlow -> Objects.isNull(this.finalFlow) ?
+            Mono.just(Report.success(reportBeforeFinalFlow.getContext())) :
             this.executeFinalFlow(
                 this.finalFlow,
-                stateBeforeFinalFlow,
+                reportBeforeFinalFlow,
                 Metadata.from(metadata)
                     .addErrors(this.getErrorsForFlowAndChildren())
                     .addWarnings(this.getWarningsForFlowAndChildren())
@@ -137,30 +137,30 @@ public final class SequentialFlow<T extends FlowContext> extends Flow<T> {
 
   /**
    * Executes the next {@link Flow},
-   * or return the previous {@link State} if an error had occurred previously in the {@link SequentialFlow}.
+   * or return the previous {@link Report} if an error had occurred previously in the {@link SequentialFlow}.
    *
-   * @param flow          The next {@link Flow}
-   * @param previousState The previous {@link State}
-   * @param metadata      A {@link Metadata} object
-   * @return The new {@link State}
+   * @param flow           The next {@link Flow}
+   * @param previousReport The previous {@link Report}
+   * @param metadata       A {@link Metadata} object
+   * @return A {@link Report}
    */
-  private Mono<State<T>> executeFlow(Flow<T> flow, State<T> previousState, Metadata<?> metadata) {
+  private Mono<Report<T>> executeFlow(Flow<T> flow, Report<T> previousReport, Metadata<?> metadata) {
     if (!this.getErrorsForFlowAndChildren().isEmpty()) {
-      return Mono.just(previousState);
+      return Mono.just(previousReport);
     }
 
-    return flow.execute(previousState, metadata);
+    return flow.execute(previousReport.getContext(), metadata);
   }
 
   /**
    * Executes the final {@link Flow}.
    *
-   * @param finalFlow     The final {@link Flow}
-   * @param previousState The previous {@link State}
-   * @param metadata      A {@link Metadata} object
-   * @return The new {@link State}
+   * @param finalFlow      The final {@link Flow}
+   * @param previousReport The previous {@link Report}
+   * @param metadata       A {@link Metadata} object
+   * @return A {@link Report}
    */
-  private Mono<State<T>> executeFinalFlow(Flow<T> finalFlow, State<T> previousState, Metadata<?> metadata) {
-    return finalFlow.execute(previousState, metadata);
+  private Mono<Report<T>> executeFinalFlow(Flow<T> finalFlow, Report<T> previousReport, Metadata<?> metadata) {
+    return finalFlow.execute(previousReport.getContext(), metadata);
   }
 }

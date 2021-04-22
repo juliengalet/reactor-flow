@@ -1,7 +1,5 @@
 package fr.jtools.reactorflow.exception;
 
-import fr.jtools.reactorflow.flow.Flow;
-
 /**
  * Exception used to represent a technical exception
  * (example: a random failure during a database access, due to the network).
@@ -14,11 +12,11 @@ public class FlowTechnicalException extends FlowException {
     return FlowExceptionType.TECHNICAL;
   }
 
-  public FlowTechnicalException(Flow<?> flowConcerned, String message) {
-    super(flowConcerned, message);
+  public FlowTechnicalException(String message) {
+    super(message);
   }
 
-  public FlowTechnicalException(Flow<?> flowConcerned, Throwable cause, String message) {
-    super(cause, flowConcerned, message);
+  public FlowTechnicalException(Throwable cause, String message) {
+    super(cause, message);
   }
 }
