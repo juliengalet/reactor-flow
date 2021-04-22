@@ -377,7 +377,7 @@ final class StepFlowTest {
         .verifyComplete();
   }
 
-  static final class TestWork implements Step<FlowContext, Object> {
+  static final class TestWork implements StepWithMetadata<FlowContext, Object> {
     @Override
     public Mono<Report<FlowContext>> apply(FlowContext context, Metadata<Object> metadata) {
       context.put("Test", "Test");
@@ -385,7 +385,7 @@ final class StepFlowTest {
     }
   }
 
-  static final class TestWorkWithMetadata implements Step<FlowContext, StreamTokenizer> {
+  static final class TestWorkWithMetadata implements StepWithMetadata<FlowContext, StreamTokenizer> {
     @Override
     public Mono<Report<FlowContext>> apply(FlowContext context, Metadata<StreamTokenizer> metadata) {
       System.out.println(metadata.getData().getClass().getSimpleName());

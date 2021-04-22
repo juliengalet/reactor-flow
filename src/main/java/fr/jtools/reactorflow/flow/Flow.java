@@ -3,8 +3,8 @@ package fr.jtools.reactorflow.flow;
 import fr.jtools.reactorflow.exception.FlowException;
 import fr.jtools.reactorflow.exception.FlowTechnicalException;
 import fr.jtools.reactorflow.report.FlowContext;
-import fr.jtools.reactorflow.report.Metadata;
 import fr.jtools.reactorflow.report.GlobalReport;
+import fr.jtools.reactorflow.report.Metadata;
 import fr.jtools.reactorflow.report.Report;
 import fr.jtools.reactorflow.report.Status;
 import fr.jtools.reactorflow.utils.ConsoleStyle;
@@ -189,19 +189,11 @@ public abstract class Flow<T extends FlowContext> implements PrettyPrint {
   }
 
   /**
-   * Get a copy of the actual {@link Flow#recoveredErrors} {@link List}.
-   *
-   * @return The copied {@link List}
-   */
-  protected final List<FlowException> getRecoveredErrors() {
-    return List.copyOf(this.recoveredErrors);
-  }
-
-  /**
    * The actual {@link Flow} execution.
    * It runs {@link Flow#execution(FlowContext, Metadata)} and :
    * <ul>
    *   <li>calls {@link Flow#setStartTime()}</li>
+   *   <li>adds {@link FlowException} in {@link Flow#errors} in case of empty result</li>
    *   <li>adds {@link FlowException} in {@link Flow#errors} in case of raw error</li>
    *   <li>calls {@link Flow#setEndTime()}</li>
    *   <li>
@@ -216,7 +208,11 @@ public abstract class Flow<T extends FlowContext> implements PrettyPrint {
    */
   protected final Mono<Report<T>> execute(T context, Metadata<?> metadata) {
     this.setStartTime();
-    return execution(context, metadata)
+    return Mono.defer(() -> execution(context, metadata))
+        .switchIfEmpty(Mono.error(new FlowTechnicalException(String.format(
+            "%s has an empty result",
+            this.getName()
+        ))))
         .onErrorResume(throwable -> {
           FlowException rawError = throwable instanceof FlowException ?
               (FlowException) throwable :

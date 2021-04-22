@@ -18,6 +18,7 @@ import static fr.jtools.reactorflow.utils.LoggerUtils.colorize;
  * @param <T> Context type
  */
 public class GlobalReport<T extends FlowContext> implements PrettyPrint {
+  public static final String ERROR_TEMPLATE = "%s - %s";
   /**
    * The {@link GlobalReport} global context.
    */
@@ -26,22 +27,22 @@ public class GlobalReport<T extends FlowContext> implements PrettyPrint {
   /**
    * The root {@link Flow}, aka the one on which you call {@link Flow#run(T)}.
    */
-  private final Flow<T> root;
+  private final Flow<T> rootFlow;
 
   /**
    * Create a {@link GlobalReport} with the {@link T} context value.
    *
    * @param context The {@link T} context
-   * @param root    The {@link GlobalReport#root} {@link Flow}
+   * @param rootFlow    The {@link GlobalReport#rootFlow} {@link Flow}
    * @param <T>     Context type
    * @return A {@link GlobalReport}
    */
-  public static <T extends FlowContext> GlobalReport<T> create(T context, Flow<T> root) {
-    return new GlobalReport<>(context, root);
+  public static <T extends FlowContext> GlobalReport<T> create(T context, Flow<T> rootFlow) {
+    return new GlobalReport<>(context, rootFlow);
   }
 
-  private GlobalReport(T context, Flow<T> root) {
-    this.root = root;
+  private GlobalReport(T context, Flow<T> rootFlow) {
+    this.rootFlow = rootFlow;
     this.context = context;
   }
 
@@ -56,48 +57,48 @@ public class GlobalReport<T extends FlowContext> implements PrettyPrint {
 
   /**
    * Get {@link GlobalReport} global {@link Status}.
-   * It corresponds the {@link Status} of {@link GlobalReport#root}.
+   * It corresponds the {@link Status} of {@link GlobalReport#rootFlow}.
    *
    * @return A {@link Status}
    */
   public Status getStatus() {
-    return this.root.getStatus();
+    return this.rootFlow.getStatus();
   }
 
   /**
-   * Get all {@link FlowException} errors that occurred during {@link GlobalReport#root} execution.
+   * Get all {@link FlowException} errors that occurred during {@link GlobalReport#rootFlow} execution.
    *
    * @return The {@link FlowException} errors
    */
   public List<FlowException> getAllErrors() {
-    return this.root.getErrorsForFlowAndChildren();
+    return this.rootFlow.getErrorsForFlowAndChildren();
   }
 
   /**
-   * Get all {@link FlowException} warnings that occurred during {@link GlobalReport#root} execution.
+   * Get all {@link FlowException} warnings that occurred during {@link GlobalReport#rootFlow} execution.
    *
    * @return The {@link FlowException} warnings
    */
   public List<FlowException> getAllWarnings() {
-    return this.root.getWarningsForFlowAndChildren();
+    return this.rootFlow.getWarningsForFlowAndChildren();
   }
 
   /**
-   * Get all {@link FlowException} recovered errors that occurred during {@link GlobalReport#root} execution.
+   * Get all {@link FlowException} recovered errors that occurred during {@link GlobalReport#rootFlow} execution.
    *
    * @return The {@link FlowException} recovered errors
    */
   public List<FlowException> getAllRecoveredErrors() {
-    return this.root.getRecoveredErrorsForFlowAndChildren();
+    return this.rootFlow.getRecoveredErrorsForFlowAndChildren();
   }
 
   /**
-   * The global name of the {@link Flow} executed, aka the name of {@link GlobalReport#root}.
+   * The global name of the {@link Flow} executed, aka the name of {@link GlobalReport#rootFlow}.
    *
    * @return The name
    */
   public String getName() {
-    return this.root.getName();
+    return this.rootFlow.getName();
   }
 
   /**
@@ -106,16 +107,16 @@ public class GlobalReport<T extends FlowContext> implements PrettyPrint {
    * @return The duration as a {@link Double}
    */
   public Double getDurationInMillis() {
-    return this.root.getDurationInMillis();
+    return this.rootFlow.getDurationInMillis();
   }
 
   /**
-   * Get the {@link GlobalReport#root} {@link Flow} type.
+   * Get the {@link GlobalReport#rootFlow} {@link Flow} type.
    *
-   * @return The {@link GlobalReport#root} {@link Flow} type
+   * @return The {@link GlobalReport#rootFlow} {@link Flow} type
    */
   public String getRootType() {
-    return this.root.getClass().getSimpleName();
+    return this.rootFlow.getClass().getSimpleName();
   }
 
   /**
@@ -131,7 +132,7 @@ public class GlobalReport<T extends FlowContext> implements PrettyPrint {
         this.getRootType(),
         this.getName(),
         String.format(Locale.US, "%.2f ms", this.getDurationInMillis()),
-        this.root.hashCode()
+        this.rootFlow.hashCode()
     );
   }
 
@@ -149,7 +150,7 @@ public class GlobalReport<T extends FlowContext> implements PrettyPrint {
         colorize(this.getRootType(), ConsoleStyle.BLUE_BOLD),
         colorize(this.getName(), ConsoleStyle.WHITE_BOLD),
         colorize(String.format(Locale.US, "%.2f ms", this.getDurationInMillis()), ConsoleStyle.MAGENTA_BOLD),
-        colorize(String.valueOf(this.root.hashCode()), ConsoleStyle.BLACK_BOLD)
+        colorize(String.valueOf(this.rootFlow.hashCode()), ConsoleStyle.BLACK_BOLD)
     );
   }
 
@@ -159,7 +160,7 @@ public class GlobalReport<T extends FlowContext> implements PrettyPrint {
    * @return A {@link String} representing the tree
    */
   public String toTreeString() {
-    return this.root.toTreeString();
+    return this.rootFlow.toTreeString();
   }
 
   /**
@@ -168,7 +169,7 @@ public class GlobalReport<T extends FlowContext> implements PrettyPrint {
    * @return A {@link String} representing the tree
    */
   public String toPrettyTreeString() {
-    return this.root.toPrettyTreeString();
+    return this.rootFlow.toPrettyTreeString();
   }
 
   /**
@@ -179,25 +180,25 @@ public class GlobalReport<T extends FlowContext> implements PrettyPrint {
   public String toPrettyExceptionsRaisedString() {
     List<String> exceptionMessages = Stream
         .concat(
-            this.root.getErrorsForFlowAndChildren()
+            this.rootFlow.getErrorsForFlowAndChildren()
                 .stream()
                 .map(error -> String.format(
-                    "%s - %s",
+                    ERROR_TEMPLATE,
                     colorize(Status.ERROR.name(), ConsoleStyle.RED_BOLD),
                     error.toPrettyString()
                 )),
             Stream.concat(
-                this.root.getWarningsForFlowAndChildren()
+                this.rootFlow.getWarningsForFlowAndChildren()
                     .stream()
                     .map(error -> String.format(
-                        "%s - %s",
+                        ERROR_TEMPLATE,
                         colorize(Status.WARNING.name(), ConsoleStyle.YELLOW_BOLD),
                         error.toPrettyString()
                     )),
-                this.root.getRecoveredErrorsForFlowAndChildren()
+                this.rootFlow.getRecoveredErrorsForFlowAndChildren()
                     .stream()
                     .map(error -> String.format(
-                        "%s - %s",
+                        ERROR_TEMPLATE,
                         colorize("RECOVERED", ConsoleStyle.WHITE_BOLD),
                         error.toPrettyString()
                     ))
@@ -222,25 +223,25 @@ public class GlobalReport<T extends FlowContext> implements PrettyPrint {
   public String toExceptionsRaisedString() {
     List<String> exceptionMessages = Stream
         .concat(
-            this.root.getErrorsForFlowAndChildren()
+            this.rootFlow.getErrorsForFlowAndChildren()
                 .stream()
                 .map(error -> String.format(
-                    "%s - %s",
+                    ERROR_TEMPLATE,
                     Status.ERROR.name(),
                     error.toString()
                 )),
             Stream.concat(
-                this.root.getWarningsForFlowAndChildren()
+                this.rootFlow.getWarningsForFlowAndChildren()
                     .stream()
                     .map(error -> String.format(
-                        "%s - %s",
+                        ERROR_TEMPLATE,
                         Status.WARNING.name(),
                         error.toString()
                     )),
-                this.root.getRecoveredErrorsForFlowAndChildren()
+                this.rootFlow.getRecoveredErrorsForFlowAndChildren()
                     .stream()
                     .map(error -> String.format(
-                        "%s - %s",
+                        ERROR_TEMPLATE,
                         "RECOVERED",
                         error.toString()
                     ))

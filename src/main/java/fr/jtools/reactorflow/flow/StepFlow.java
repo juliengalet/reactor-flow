@@ -8,6 +8,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Class managing a step {@link Flow} (aka a real execution, not other {@link Flow}s management).
@@ -19,7 +20,7 @@ public final class StepFlow<T extends FlowContext, M> extends Flow<T> {
   /**
    * The execution.
    */
-  private final Step<T, M> execution;
+  private final StepWithMetadata<T, M> execution;
   /**
    * The name.
    */
@@ -34,11 +35,11 @@ public final class StepFlow<T extends FlowContext, M> extends Flow<T> {
    * @param <M>       Metadata type
    * @return A {@link StepFlow}
    */
-  public static <T extends FlowContext, M> StepFlow<T, M> create(String name, Step<T, M> execution) {
+  public static <T extends FlowContext, M> StepFlow<T, M> create(String name, StepWithMetadata<T, M> execution) {
     return new StepFlow<>(name, execution);
   }
 
-  private StepFlow(String name, Step<T, M> execution) {
+  private StepFlow(String name, StepWithMetadata<T, M> execution) {
     this.name = name;
     this.execution = execution;
   }
@@ -87,10 +88,18 @@ public final class StepFlow<T extends FlowContext, M> extends Flow<T> {
   protected final Mono<Report<T>> execution(T context, Metadata<?> metadata) {
     return Mono
         .defer(() -> Mono.just(((Metadata<M>) metadata)))
-        .flatMap(meta -> execution.apply(
-            context,
-            Metadata.create(meta.getData()).addErrors(meta.getErrors()).addWarnings(meta.getWarnings())
-        ))
+        .flatMap(meta -> {
+          Mono<Report<T>> exec = execution.apply(
+              context,
+              Metadata.create(meta.getData()).addErrors(meta.getErrors()).addWarnings(meta.getWarnings())
+          );
+
+          return Optional.ofNullable(exec)
+              .orElse(Mono.error(new FlowTechnicalException(String.format(
+                  "%s has a null result",
+                  this.getName()
+              ))));
+        })
         .onErrorResume(ClassCastException.class, error -> Mono.just(Report.error(
             context,
             new FlowTechnicalException(error, String.format("Can not convert metadata to target type: %s", error.getMessage().split(" \\(")[0]))

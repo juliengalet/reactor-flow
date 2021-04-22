@@ -1,7 +1,7 @@
 package fr.jtools.reactorflow.builder;
 
 import fr.jtools.reactorflow.exception.FlowBuilderException;
-import fr.jtools.reactorflow.flow.Step;
+import fr.jtools.reactorflow.flow.StepWithMetadata;
 import fr.jtools.reactorflow.flow.StepFlow;
 import fr.jtools.reactorflow.report.FlowContext;
 
@@ -27,7 +27,7 @@ public final class StepFlowBuilder {
   private static final class BuildSteps<T extends FlowContext, M> implements StepFlowBuilder.Named<T, M>,
       StepFlowBuilder.Execution<T, M>,
       StepFlowBuilder.Build<T, M> {
-    private Step<T, M> execution;
+    private StepWithMetadata<T, M> execution;
     private String name;
 
     private BuildSteps() {
@@ -41,7 +41,7 @@ public final class StepFlowBuilder {
       return this;
     }
 
-    public final StepFlowBuilder.Build<T, M> execution(Step<T, M> execution) {
+    public final StepFlowBuilder.Build<T, M> execution(StepWithMetadata<T, M> execution) {
       if (Objects.isNull(execution)) {
         throw new FlowBuilderException(StepFlowBuilder.class, "execution is mandatory");
       }
@@ -63,6 +63,6 @@ public final class StepFlowBuilder {
   }
 
   public interface Execution<T extends FlowContext, M> {
-    StepFlowBuilder.Build<T, M> execution(Step<T, M> execution);
+    StepFlowBuilder.Build<T, M> execution(StepWithMetadata<T, M> execution);
   }
 }
