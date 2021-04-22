@@ -3,8 +3,7 @@ package fr.jtools.reactorflow.builder;
 import fr.jtools.reactorflow.exception.FlowBuilderException;
 import fr.jtools.reactorflow.flow.ConditionalFlow;
 import fr.jtools.reactorflow.flow.Flow;
-import fr.jtools.reactorflow.state.FlowContext;
-import fr.jtools.reactorflow.state.State;
+import fr.jtools.reactorflow.report.FlowContext;
 
 import java.util.Objects;
 import java.util.function.Predicate;
@@ -27,7 +26,7 @@ public final class ConditionalFlowBuilder {
     private Flow<T> flowCaseTrue;
     private Flow<T> flowCaseFalse;
 
-    private Predicate<State<T>> condition;
+    private Predicate<T> condition;
 
     private BuildSteps() {
     }
@@ -40,7 +39,7 @@ public final class ConditionalFlowBuilder {
       return this;
     }
 
-    public final ConditionalFlowBuilder.CaseTrue<T> condition(Predicate<State<T>> condition) {
+    public final ConditionalFlowBuilder.CaseTrue<T> condition(Predicate<T> condition) {
       if (Objects.isNull(condition)) {
         throw new FlowBuilderException(ConditionalFlowBuilder.class, "condition is mandatory");
       }
@@ -86,7 +85,7 @@ public final class ConditionalFlowBuilder {
   }
 
   public interface Condition<T extends FlowContext> {
-    ConditionalFlowBuilder.CaseTrue<T> condition(Predicate<State<T>> condition);
+    ConditionalFlowBuilder.CaseTrue<T> condition(Predicate<T> condition);
   }
 }
 

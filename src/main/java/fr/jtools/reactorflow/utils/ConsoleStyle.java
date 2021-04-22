@@ -1,4 +1,4 @@
-package fr.jtools.reactorflow.utils.console;
+package fr.jtools.reactorflow.utils;
 
 /**
  * An enum storing a set of available styles for the console.

@@ -1,11 +1,10 @@
-package fr.jtools.reactorflow;
+package fr.jtools.reactorflow.flow;
 
 import fr.jtools.reactorflow.builder.RecoverableFlowBuilder;
 import fr.jtools.reactorflow.exception.FlowBuilderException;
 import fr.jtools.reactorflow.exception.RecoverableFlowException;
-import fr.jtools.reactorflow.flow.RecoverableFlow;
-import fr.jtools.reactorflow.state.FlowContext;
-import fr.jtools.reactorflow.state.State;
+import fr.jtools.reactorflow.report.FlowContext;
+import fr.jtools.reactorflow.report.Status;
 import fr.jtools.reactorflow.testutils.CustomContext;
 import fr.jtools.reactorflow.testutils.ErrorMonoStepFlow;
 import fr.jtools.reactorflow.testutils.ErrorRawStepFlow;
@@ -32,14 +31,14 @@ final class RecoverableFlowTest {
 
     StepVerifier
         .create(recoverableFlow.run(FlowContext.create()))
-        .assertNext(assertAndLog(state -> {
-          assertThat(state.getName()).isEqualTo("Test");
-          assertThat(state.getContext().get("Tried")).isEqualTo("Tried");
-          assertThat(state.getContext().get("Recover")).isNull();
-          assertThat(state.getStatus()).isEqualTo(State.Status.SUCCESS);
-          assertThat(state.getAllRecoveredErrors()).isEmpty();
-          assertThat(state.getAllErrors()).isEmpty();
-          assertThat(state.getAllWarnings()).isEmpty();
+        .assertNext(assertAndLog(globalReport -> {
+          assertThat(globalReport.getName()).isEqualTo("Test");
+          assertThat(globalReport.getContext().get("Tried")).isEqualTo("Tried");
+          assertThat(globalReport.getContext().get("Recover")).isNull();
+          assertThat(globalReport.getStatus()).isEqualTo(Status.SUCCESS);
+          assertThat(globalReport.getAllRecoveredErrors()).isEmpty();
+          assertThat(globalReport.getAllErrors()).isEmpty();
+          assertThat(globalReport.getAllWarnings()).isEmpty();
         }))
         .verifyComplete();
   }
@@ -56,14 +55,14 @@ final class RecoverableFlowTest {
 
     StepVerifier
         .create(recoverableFlow.cloneFlow("Test copy").run(FlowContext.create()))
-        .assertNext(assertAndLog(state -> {
-          assertThat(state.getName()).isEqualTo("Test copy");
-          assertThat(state.getContext().get("Tried")).isEqualTo("Tried");
-          assertThat(state.getContext().get("Recover")).isNull();
-          assertThat(state.getStatus()).isEqualTo(State.Status.SUCCESS);
-          assertThat(state.getAllRecoveredErrors()).isEmpty();
-          assertThat(state.getAllErrors()).isEmpty();
-          assertThat(state.getAllWarnings()).isEmpty();
+        .assertNext(assertAndLog(globalReport -> {
+          assertThat(globalReport.getName()).isEqualTo("Test copy");
+          assertThat(globalReport.getContext().get("Tried")).isEqualTo("Tried");
+          assertThat(globalReport.getContext().get("Recover")).isNull();
+          assertThat(globalReport.getStatus()).isEqualTo(Status.SUCCESS);
+          assertThat(globalReport.getAllRecoveredErrors()).isEmpty();
+          assertThat(globalReport.getAllErrors()).isEmpty();
+          assertThat(globalReport.getAllWarnings()).isEmpty();
         }))
         .verifyComplete();
   }
@@ -81,14 +80,14 @@ final class RecoverableFlowTest {
 
     StepVerifier
         .create(recoverableFlow.cloneFlow().run(FlowContext.create()))
-        .assertNext(assertAndLog(state -> {
-          assertThat(state.getName()).isEqualTo("Test");
-          assertThat(state.getContext().get("Tried")).isEqualTo("Tried");
-          assertThat(state.getContext().get("Recover")).isNull();
-          assertThat(state.getStatus()).isEqualTo(State.Status.SUCCESS);
-          assertThat(state.getAllRecoveredErrors()).isEmpty();
-          assertThat(state.getAllErrors()).isEmpty();
-          assertThat(state.getAllWarnings()).isEmpty();
+        .assertNext(assertAndLog(globalReport -> {
+          assertThat(globalReport.getName()).isEqualTo("Test");
+          assertThat(globalReport.getContext().get("Tried")).isEqualTo("Tried");
+          assertThat(globalReport.getContext().get("Recover")).isNull();
+          assertThat(globalReport.getStatus()).isEqualTo(Status.SUCCESS);
+          assertThat(globalReport.getAllRecoveredErrors()).isEmpty();
+          assertThat(globalReport.getAllErrors()).isEmpty();
+          assertThat(globalReport.getAllWarnings()).isEmpty();
         }))
         .verifyComplete();
   }
@@ -105,14 +104,14 @@ final class RecoverableFlowTest {
 
     StepVerifier
         .create(recoverableFlow.run(new CustomContext()))
-        .assertNext(assertAndLog(state -> {
-          assertThat(state.getContext().customField).isNotNull();
-          assertThat(state.getContext().get("Tried")).isEqualTo("Tried");
-          assertThat(state.getContext().get("Recover")).isNull();
-          assertThat(state.getStatus()).isEqualTo(State.Status.SUCCESS);
-          assertThat(state.getAllRecoveredErrors()).isEmpty();
-          assertThat(state.getAllErrors()).isEmpty();
-          assertThat(state.getAllWarnings()).isEmpty();
+        .assertNext(assertAndLog(globalReport -> {
+          assertThat(globalReport.getContext().customField).isNotNull();
+          assertThat(globalReport.getContext().get("Tried")).isEqualTo("Tried");
+          assertThat(globalReport.getContext().get("Recover")).isNull();
+          assertThat(globalReport.getStatus()).isEqualTo(Status.SUCCESS);
+          assertThat(globalReport.getAllRecoveredErrors()).isEmpty();
+          assertThat(globalReport.getAllErrors()).isEmpty();
+          assertThat(globalReport.getAllWarnings()).isEmpty();
         }))
         .verifyComplete();
   }
@@ -129,13 +128,13 @@ final class RecoverableFlowTest {
 
     StepVerifier
         .create(recoverableFlow.run(FlowContext.create()))
-        .assertNext(assertAndLog(state -> {
-          assertThat(state.getContext().get("Tried")).isNull();
-          assertThat(state.getContext().get("Recover")).isEqualTo("Recover");
-          assertThat(state.getStatus()).isEqualTo(State.Status.SUCCESS);
-          assertThat(state.getAllRecoveredErrors()).hasSize(1);
-          assertThat(state.getAllErrors()).isEmpty();
-          assertThat(state.getAllWarnings()).isEmpty();
+        .assertNext(assertAndLog(globalReport -> {
+          assertThat(globalReport.getContext().get("Tried")).isNull();
+          assertThat(globalReport.getContext().get("Recover")).isEqualTo("Recover");
+          assertThat(globalReport.getStatus()).isEqualTo(Status.SUCCESS);
+          assertThat(globalReport.getAllRecoveredErrors()).hasSize(1);
+          assertThat(globalReport.getAllErrors()).isEmpty();
+          assertThat(globalReport.getAllWarnings()).isEmpty();
         }))
         .verifyComplete();
   }
@@ -152,13 +151,13 @@ final class RecoverableFlowTest {
 
     StepVerifier
         .create(recoverableFlow.run(FlowContext.create()))
-        .assertNext(assertAndLog(state -> {
-          assertThat(state.getContext().get("Tried")).isNull();
-          assertThat(state.getContext().get("Recover")).isEqualTo("Recover");
-          assertThat(state.getStatus()).isEqualTo(State.Status.SUCCESS);
-          assertThat(state.getAllRecoveredErrors()).hasSize(1);
-          assertThat(state.getAllErrors()).isEmpty();
-          assertThat(state.getAllWarnings()).isEmpty();
+        .assertNext(assertAndLog(globalReport -> {
+          assertThat(globalReport.getContext().get("Tried")).isNull();
+          assertThat(globalReport.getContext().get("Recover")).isEqualTo("Recover");
+          assertThat(globalReport.getStatus()).isEqualTo(Status.SUCCESS);
+          assertThat(globalReport.getAllRecoveredErrors()).hasSize(1);
+          assertThat(globalReport.getAllErrors()).isEmpty();
+          assertThat(globalReport.getAllWarnings()).isEmpty();
         }))
         .verifyComplete();
   }
@@ -175,13 +174,13 @@ final class RecoverableFlowTest {
 
     StepVerifier
         .create(recoverableFlow.run(FlowContext.create()))
-        .assertNext(assertAndLog(state -> {
-          assertThat(state.getContext().get("Tried")).isNull();
-          assertThat(state.getContext().get("Recover")).isEqualTo("Recover");
-          assertThat(state.getStatus()).isEqualTo(State.Status.SUCCESS);
-          assertThat(state.getAllRecoveredErrors()).hasSize(1);
-          assertThat(state.getAllErrors()).isEmpty();
-          assertThat(state.getAllWarnings()).isEmpty();
+        .assertNext(assertAndLog(globalReport -> {
+          assertThat(globalReport.getContext().get("Tried")).isNull();
+          assertThat(globalReport.getContext().get("Recover")).isEqualTo("Recover");
+          assertThat(globalReport.getStatus()).isEqualTo(Status.SUCCESS);
+          assertThat(globalReport.getAllRecoveredErrors()).hasSize(1);
+          assertThat(globalReport.getAllErrors()).isEmpty();
+          assertThat(globalReport.getAllWarnings()).isEmpty();
         }))
         .verifyComplete();
   }
@@ -198,13 +197,13 @@ final class RecoverableFlowTest {
 
     StepVerifier
         .create(recoverableFlow.run(FlowContext.create()))
-        .assertNext(assertAndLog(state -> {
-          assertThat(state.getContext().get("Tried")).isNull();
-          assertThat(state.getContext().get("Recover")).isEqualTo("Recover");
-          assertThat(state.getStatus()).isEqualTo(State.Status.WARNING);
-          assertThat(state.getAllRecoveredErrors()).hasSize(1);
-          assertThat(state.getAllErrors()).isEmpty();
-          assertThat(state.getAllWarnings()).hasSize(1);
+        .assertNext(assertAndLog(globalReport -> {
+          assertThat(globalReport.getContext().get("Tried")).isNull();
+          assertThat(globalReport.getContext().get("Recover")).isEqualTo("Recover");
+          assertThat(globalReport.getStatus()).isEqualTo(Status.WARNING);
+          assertThat(globalReport.getAllRecoveredErrors()).hasSize(1);
+          assertThat(globalReport.getAllErrors()).isEmpty();
+          assertThat(globalReport.getAllWarnings()).hasSize(1);
         }))
         .verifyComplete();
   }
@@ -221,13 +220,13 @@ final class RecoverableFlowTest {
 
     StepVerifier
         .create(recoverableFlow.run(FlowContext.create()))
-        .assertNext(assertAndLog(state -> {
-          assertThat(state.getContext().get("Tried")).isNull();
-          assertThat(state.getContext().get("Recover")).isNull();
-          assertThat(state.getStatus()).isEqualTo(State.Status.ERROR);
-          assertThat(state.getAllRecoveredErrors()).isEmpty();
-          assertThat(state.getAllErrors()).hasSize(1);
-          assertThat(state.getAllWarnings()).isEmpty();
+        .assertNext(assertAndLog(globalReport -> {
+          assertThat(globalReport.getContext().get("Tried")).isNull();
+          assertThat(globalReport.getContext().get("Recover")).isNull();
+          assertThat(globalReport.getStatus()).isEqualTo(Status.ERROR);
+          assertThat(globalReport.getAllRecoveredErrors()).isEmpty();
+          assertThat(globalReport.getAllErrors()).hasSize(1);
+          assertThat(globalReport.getAllWarnings()).isEmpty();
         }))
         .verifyComplete();
   }

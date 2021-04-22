@@ -1,8 +1,8 @@
 package fr.jtools.reactorflow.flow;
 
-import fr.jtools.reactorflow.state.FlowContext;
-import fr.jtools.reactorflow.state.Metadata;
-import fr.jtools.reactorflow.state.State;
+import fr.jtools.reactorflow.report.FlowContext;
+import fr.jtools.reactorflow.report.Metadata;
+import fr.jtools.reactorflow.report.Report;
 import reactor.core.publisher.Mono;
 
 import java.util.Collections;
@@ -46,15 +46,15 @@ public final class NoOpFlow<T extends FlowContext> extends Flow<T> {
 
   /**
    * {@link NoOpFlow} execution.
-   * It just returns the previous {@link State}.
+   * It just returns the previous {@link T} context in a new {@link Report}.
    *
-   * @param previousState The previous {@link State}
-   * @param metadata      A {@link Metadata} object
-   * @return The new {@link State}
+   * @param context  The previous {@link T} context
+   * @param metadata A {@link Metadata} object
+   * @return A {@link Report}
    */
   @Override
-  protected final Mono<State<T>> execution(State<T> previousState, Metadata<?> metadata) {
-    return Mono.just(previousState);
+  protected final Mono<Report<T>> execution(T context, Metadata<?> metadata) {
+    return Mono.just(Report.success(context));
   }
 
   /**

@@ -1,4 +1,4 @@
-package fr.jtools.reactorflow.utils.console;
+package fr.jtools.reactorflow.utils;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;

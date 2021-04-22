@@ -1,4 +1,4 @@
-package fr.jtools.reactorflow.state;
+package fr.jtools.reactorflow.report;
 
 import fr.jtools.reactorflow.exception.FlowException;
 

@@ -16,10 +16,10 @@ public final class FlowBuilderException extends FlowException {
   }
 
   public <T> FlowBuilderException(Class<T> builder, String message) {
-    super(null, FlowBuilderException.mapMessage(builder, message));
+    super(FlowBuilderException.mapMessage(builder, message));
   }
 
   public <T> FlowBuilderException(Throwable cause, Class<T> builder, String message) {
-    super(cause, null, FlowBuilderException.mapMessage(builder, message));
+    super(cause, FlowBuilderException.mapMessage(builder, message));
   }
 }

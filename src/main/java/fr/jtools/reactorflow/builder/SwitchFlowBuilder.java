@@ -3,8 +3,7 @@ package fr.jtools.reactorflow.builder;
 import fr.jtools.reactorflow.exception.FlowBuilderException;
 import fr.jtools.reactorflow.flow.Flow;
 import fr.jtools.reactorflow.flow.SwitchFlow;
-import fr.jtools.reactorflow.state.FlowContext;
-import fr.jtools.reactorflow.state.State;
+import fr.jtools.reactorflow.report.FlowContext;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -56,7 +55,7 @@ public final class SwitchFlowBuilder {
     /**
      * The switch condition.
      */
-    private Function<State<T>, String> switchCondition;
+    private Function<T, String> switchCondition;
 
     private BuildSteps() {
     }
@@ -69,7 +68,7 @@ public final class SwitchFlowBuilder {
       return this;
     }
 
-    public final SwitchCase<T> switchCondition(Function<State<T>, String> switchCondition) {
+    public final SwitchCase<T> switchCondition(Function<T, String> switchCondition) {
       if (Objects.isNull(switchCondition)) {
         throw new FlowBuilderException(SwitchFlowBuilder.class, "switchCondition is mandatory");
       }
@@ -142,9 +141,9 @@ public final class SwitchFlowBuilder {
     /**
      * Define the switch condition that will decide which flow should be executed.
      *
-     * @param switchCondition The switchCondition, a function returning a {@link String} mapped from {@link State}
+     * @param switchCondition The switchCondition, a function returning a {@link String} mapped from {@link T} context
      * @return {@link SwitchFlowBuilder.SwitchCase} builder step
      */
-    SwitchFlowBuilder.SwitchCase<T> switchCondition(Function<State<T>, String> switchCondition);
+    SwitchFlowBuilder.SwitchCase<T> switchCondition(Function<T, String> switchCondition);
   }
 }

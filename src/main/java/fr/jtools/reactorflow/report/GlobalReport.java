@@ -1,25 +1,25 @@
-package fr.jtools.reactorflow.state;
+package fr.jtools.reactorflow.report;
 
 import fr.jtools.reactorflow.exception.FlowException;
 import fr.jtools.reactorflow.flow.Flow;
-import fr.jtools.reactorflow.utils.console.ConsoleStyle;
-import fr.jtools.reactorflow.utils.console.PrettyPrint;
+import fr.jtools.reactorflow.utils.ConsoleStyle;
+import fr.jtools.reactorflow.utils.PrettyPrint;
 
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static fr.jtools.reactorflow.utils.console.LoggerUtils.colorize;
+import static fr.jtools.reactorflow.utils.LoggerUtils.colorize;
 
 /**
- * This class stores the state of a {@link Flow} execution, initialized by {@link Flow#run(T)}.
+ * This class stores the global report of a {@link Flow} execution, created by {@link Flow#run(FlowContext)}.
  *
  * @param <T> Context type
  */
-public class State<T extends FlowContext> implements PrettyPrint {
+public class GlobalReport<T extends FlowContext> implements PrettyPrint {
   /**
-   * The {@link State} global context.
+   * The {@link GlobalReport} global context.
    */
   private final T context;
 
@@ -29,20 +29,20 @@ public class State<T extends FlowContext> implements PrettyPrint {
   private final Flow<T> root;
 
   /**
-   * Create a {@link State} with the initial {@link T} context value.
+   * Create a {@link GlobalReport} with the {@link T} context value.
    *
-   * @param initialContext The initial {@link T} context
-   * @param root           The {@link State#root} {@link Flow}
-   * @param <T>            Context type
-   * @return A {@link State}
+   * @param context The {@link T} context
+   * @param root    The {@link GlobalReport#root} {@link Flow}
+   * @param <T>     Context type
+   * @return A {@link GlobalReport}
    */
-  public static <T extends FlowContext> State<T> initiate(T initialContext, Flow<T> root) {
-    return new State<>(initialContext, root);
+  public static <T extends FlowContext> GlobalReport<T> create(T context, Flow<T> root) {
+    return new GlobalReport<>(context, root);
   }
 
-  private State(T initialContext, Flow<T> root) {
+  private GlobalReport(T context, Flow<T> root) {
     this.root = root;
-    this.context = initialContext;
+    this.context = context;
   }
 
   /**
@@ -55,17 +55,17 @@ public class State<T extends FlowContext> implements PrettyPrint {
   }
 
   /**
-   * Get {@link State} global {@link State.Status}.
-   * It corresponds the {@link State.Status} of {@link State#root}.
+   * Get {@link GlobalReport} global {@link Status}.
+   * It corresponds the {@link Status} of {@link GlobalReport#root}.
    *
-   * @return A {@link State.Status}
+   * @return A {@link Status}
    */
   public Status getStatus() {
     return this.root.getStatus();
   }
 
   /**
-   * Get all {@link FlowException} errors that occurred during {@link State#root} execution.
+   * Get all {@link FlowException} errors that occurred during {@link GlobalReport#root} execution.
    *
    * @return The {@link FlowException} errors
    */
@@ -74,7 +74,7 @@ public class State<T extends FlowContext> implements PrettyPrint {
   }
 
   /**
-   * Get all {@link FlowException} warnings that occurred during {@link State#root} execution.
+   * Get all {@link FlowException} warnings that occurred during {@link GlobalReport#root} execution.
    *
    * @return The {@link FlowException} warnings
    */
@@ -83,7 +83,7 @@ public class State<T extends FlowContext> implements PrettyPrint {
   }
 
   /**
-   * Get all {@link FlowException} recovered errors that occurred during {@link State#root} execution.
+   * Get all {@link FlowException} recovered errors that occurred during {@link GlobalReport#root} execution.
    *
    * @return The {@link FlowException} recovered errors
    */
@@ -92,7 +92,7 @@ public class State<T extends FlowContext> implements PrettyPrint {
   }
 
   /**
-   * The global name of the {@link Flow} executed, aka the name of {@link State#root}.
+   * The global name of the {@link Flow} executed, aka the name of {@link GlobalReport#root}.
    *
    * @return The name
    */
@@ -110,9 +110,9 @@ public class State<T extends FlowContext> implements PrettyPrint {
   }
 
   /**
-   * Get the {@link State#root} {@link Flow} type.
+   * Get the {@link GlobalReport#root} {@link Flow} type.
    *
-   * @return The {@link State#root} {@link Flow} type
+   * @return The {@link GlobalReport#root} {@link Flow} type
    */
   public String getRootType() {
     return this.root.getClass().getSimpleName();
@@ -145,7 +145,7 @@ public class State<T extends FlowContext> implements PrettyPrint {
     return String.format(
         "%s%n%s - %s named %s ended in %s (%s)%n",
         colorize("Summary", ConsoleStyle.MAGENTA_BOLD),
-        colorize(this.getStatus().name(), State.getStatusConsoleStyle(this.getStatus())),
+        colorize(this.getStatus().name(), GlobalReport.getStatusConsoleStyle(this.getStatus())),
         colorize(this.getRootType(), ConsoleStyle.BLUE_BOLD),
         colorize(this.getName(), ConsoleStyle.WHITE_BOLD),
         colorize(String.format(Locale.US, "%.2f ms", this.getDurationInMillis()), ConsoleStyle.MAGENTA_BOLD),
@@ -258,12 +258,12 @@ public class State<T extends FlowContext> implements PrettyPrint {
   }
 
   /**
-   * Get the {@link ConsoleStyle} matching a {@link State.Status}.
+   * Get the {@link ConsoleStyle} matching a {@link Status}.
    *
-   * @param status A {@link State.Status}
+   * @param status A {@link Status}
    * @return The {@link ConsoleStyle}
    */
-  public static ConsoleStyle getStatusConsoleStyle(State.Status status) {
+  public static ConsoleStyle getStatusConsoleStyle(Status status) {
     switch (status) {
       case SUCCESS:
         return ConsoleStyle.GREEN_BOLD;
@@ -274,28 +274,5 @@ public class State<T extends FlowContext> implements PrettyPrint {
       default:
         return ConsoleStyle.WHITE_BOLD;
     }
-  }
-
-  /**
-   * The status that a {@link Flow} can have after its execution or when it is not executed.
-   */
-  public enum Status {
-    /**
-     * Non executed {@link Flow}.
-     */
-    IGNORED,
-    /**
-     * {@link Flow} executed with at least one warning in itself or in its children.
-     */
-    WARNING,
-    /**
-     * {@link Flow} executed with no warning or error in itself or in its children.
-     */
-    SUCCESS,
-    /**
-     * {@link Flow} executed with at least one valid error in itself or in its children.
-     * An error is valid if it has not be recovered, or if it is not ignore by a {@link fr.jtools.reactorflow.flow.FlowStatusPolicy}.
-     */
-    ERROR
   }
 }

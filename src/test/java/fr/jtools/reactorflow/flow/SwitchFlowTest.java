@@ -1,10 +1,9 @@
-package fr.jtools.reactorflow;
+package fr.jtools.reactorflow.flow;
 
 import fr.jtools.reactorflow.builder.SwitchFlowBuilder;
 import fr.jtools.reactorflow.exception.FlowBuilderException;
-import fr.jtools.reactorflow.flow.SwitchFlow;
-import fr.jtools.reactorflow.state.FlowContext;
-import fr.jtools.reactorflow.state.State;
+import fr.jtools.reactorflow.report.FlowContext;
+import fr.jtools.reactorflow.report.Status;
 import fr.jtools.reactorflow.testutils.CustomContext;
 import fr.jtools.reactorflow.testutils.ErrorMonoStepFlow;
 import fr.jtools.reactorflow.testutils.ErrorRawStepFlow;
@@ -24,7 +23,7 @@ final class SwitchFlowTest {
     SwitchFlow<FlowContext> switchFlow = SwitchFlowBuilder
         .defaultBuilder()
         .named("Test")
-        .switchCondition(state -> "Case 1")
+        .switchCondition(globalReport -> "Case 1")
         .switchCase("Case 1", SuccessStepFlow.flowNamed("Case 1"))
         .switchCase("Case 2", SuccessStepFlow.flowNamed("Case 2"))
         .defaultCase(SuccessStepFlow.flowNamed("Default Case"))
@@ -32,15 +31,15 @@ final class SwitchFlowTest {
 
     StepVerifier
         .create(switchFlow.run(FlowContext.create()))
-        .assertNext(assertAndLog(state -> {
-          assertThat(state.getName()).isEqualTo("Test");
-          assertThat(state.getContext().get("Case 1")).isEqualTo("Case 1");
-          assertThat(state.getContext().get("Case 2")).isNull();
-          assertThat(state.getContext().get("Default Case")).isNull();
-          assertThat(state.getStatus()).isEqualTo(State.Status.SUCCESS);
-          assertThat(state.getAllRecoveredErrors()).isEmpty();
-          assertThat(state.getAllErrors()).isEmpty();
-          assertThat(state.getAllWarnings()).isEmpty();
+        .assertNext(assertAndLog(globalReport -> {
+          assertThat(globalReport.getName()).isEqualTo("Test");
+          assertThat(globalReport.getContext().get("Case 1")).isEqualTo("Case 1");
+          assertThat(globalReport.getContext().get("Case 2")).isNull();
+          assertThat(globalReport.getContext().get("Default Case")).isNull();
+          assertThat(globalReport.getStatus()).isEqualTo(Status.SUCCESS);
+          assertThat(globalReport.getAllRecoveredErrors()).isEmpty();
+          assertThat(globalReport.getAllErrors()).isEmpty();
+          assertThat(globalReport.getAllWarnings()).isEmpty();
         }))
         .verifyComplete();
   }
@@ -50,7 +49,7 @@ final class SwitchFlowTest {
     SwitchFlow<FlowContext> switchFlow = SwitchFlowBuilder
         .defaultBuilder()
         .named("Test")
-        .switchCondition(state -> "Case 1")
+        .switchCondition(globalReport -> "Case 1")
         .switchCase("Case 1", SuccessStepFlow.flowNamed("Case 1"))
         .switchCase("Case 2", SuccessStepFlow.flowNamed("Case 2"))
         .defaultCase(SuccessStepFlow.flowNamed("Default Case"))
@@ -58,15 +57,15 @@ final class SwitchFlowTest {
 
     StepVerifier
         .create(switchFlow.cloneFlow("Test copy").run(FlowContext.create()))
-        .assertNext(assertAndLog(state -> {
-          assertThat(state.getName()).isEqualTo("Test copy");
-          assertThat(state.getContext().get("Case 1")).isEqualTo("Case 1");
-          assertThat(state.getContext().get("Case 2")).isNull();
-          assertThat(state.getContext().get("Default Case")).isNull();
-          assertThat(state.getStatus()).isEqualTo(State.Status.SUCCESS);
-          assertThat(state.getAllRecoveredErrors()).isEmpty();
-          assertThat(state.getAllErrors()).isEmpty();
-          assertThat(state.getAllWarnings()).isEmpty();
+        .assertNext(assertAndLog(globalReport -> {
+          assertThat(globalReport.getName()).isEqualTo("Test copy");
+          assertThat(globalReport.getContext().get("Case 1")).isEqualTo("Case 1");
+          assertThat(globalReport.getContext().get("Case 2")).isNull();
+          assertThat(globalReport.getContext().get("Default Case")).isNull();
+          assertThat(globalReport.getStatus()).isEqualTo(Status.SUCCESS);
+          assertThat(globalReport.getAllRecoveredErrors()).isEmpty();
+          assertThat(globalReport.getAllErrors()).isEmpty();
+          assertThat(globalReport.getAllWarnings()).isEmpty();
         }))
         .verifyComplete();
   }
@@ -77,7 +76,7 @@ final class SwitchFlowTest {
     SwitchFlow<FlowContext> switchFlow = SwitchFlowBuilder
         .defaultBuilder()
         .named("Test")
-        .switchCondition(state -> "Case 1")
+        .switchCondition(globalReport -> "Case 1")
         .switchCase("Case 1", SuccessStepFlow.flowNamed("Case 1"))
         .switchCase("Case 2", SuccessStepFlow.flowNamed("Case 2"))
         .defaultCase(SuccessStepFlow.flowNamed("Default Case"))
@@ -85,15 +84,15 @@ final class SwitchFlowTest {
 
     StepVerifier
         .create(switchFlow.cloneFlow().run(FlowContext.create()))
-        .assertNext(assertAndLog(state -> {
-          assertThat(state.getName()).isEqualTo("Test");
-          assertThat(state.getContext().get("Case 1")).isEqualTo("Case 1");
-          assertThat(state.getContext().get("Case 2")).isNull();
-          assertThat(state.getContext().get("Default Case")).isNull();
-          assertThat(state.getStatus()).isEqualTo(State.Status.SUCCESS);
-          assertThat(state.getAllRecoveredErrors()).isEmpty();
-          assertThat(state.getAllErrors()).isEmpty();
-          assertThat(state.getAllWarnings()).isEmpty();
+        .assertNext(assertAndLog(globalReport -> {
+          assertThat(globalReport.getName()).isEqualTo("Test");
+          assertThat(globalReport.getContext().get("Case 1")).isEqualTo("Case 1");
+          assertThat(globalReport.getContext().get("Case 2")).isNull();
+          assertThat(globalReport.getContext().get("Default Case")).isNull();
+          assertThat(globalReport.getStatus()).isEqualTo(Status.SUCCESS);
+          assertThat(globalReport.getAllRecoveredErrors()).isEmpty();
+          assertThat(globalReport.getAllErrors()).isEmpty();
+          assertThat(globalReport.getAllWarnings()).isEmpty();
         }))
         .verifyComplete();
   }
@@ -103,7 +102,7 @@ final class SwitchFlowTest {
     SwitchFlow<CustomContext> switchFlow = SwitchFlowBuilder
         .builderForContextOfType(CustomContext.class)
         .named("Test")
-        .switchCondition(state -> "Case 1")
+        .switchCondition(globalReport -> "Case 1")
         .switchCase("Case 1", SuccessStepFlow.flowNamed("Case 1"))
         .switchCase("Case 2", SuccessStepFlow.flowNamed("Case 2"))
         .defaultCase(SuccessStepFlow.flowNamed("Default Case"))
@@ -111,15 +110,15 @@ final class SwitchFlowTest {
 
     StepVerifier
         .create(switchFlow.run(new CustomContext()))
-        .assertNext(assertAndLog(state -> {
-          assertThat(state.getContext().customField).isNotNull();
-          assertThat(state.getContext().get("Case 1")).isEqualTo("Case 1");
-          assertThat(state.getContext().get("Case 2")).isNull();
-          assertThat(state.getContext().get("Default Case")).isNull();
-          assertThat(state.getStatus()).isEqualTo(State.Status.SUCCESS);
-          assertThat(state.getAllRecoveredErrors()).isEmpty();
-          assertThat(state.getAllErrors()).isEmpty();
-          assertThat(state.getAllWarnings()).isEmpty();
+        .assertNext(assertAndLog(globalReport -> {
+          assertThat(globalReport.getContext().customField).isNotNull();
+          assertThat(globalReport.getContext().get("Case 1")).isEqualTo("Case 1");
+          assertThat(globalReport.getContext().get("Case 2")).isNull();
+          assertThat(globalReport.getContext().get("Default Case")).isNull();
+          assertThat(globalReport.getStatus()).isEqualTo(Status.SUCCESS);
+          assertThat(globalReport.getAllRecoveredErrors()).isEmpty();
+          assertThat(globalReport.getAllErrors()).isEmpty();
+          assertThat(globalReport.getAllWarnings()).isEmpty();
         }))
         .verifyComplete();
   }
@@ -129,7 +128,7 @@ final class SwitchFlowTest {
     SwitchFlow<FlowContext> switchFlow = SwitchFlowBuilder
         .defaultBuilder()
         .named("Test")
-        .switchCondition(state -> "Case 1")
+        .switchCondition(globalReport -> "Case 1")
         .switchCase("Case 1", ErrorStepFlow.flowNamed("Case 1"))
         .switchCase("Case 2", SuccessStepFlow.flowNamed("Case 2"))
         .defaultCase(SuccessStepFlow.flowNamed("Default Case"))
@@ -137,14 +136,14 @@ final class SwitchFlowTest {
 
     StepVerifier
         .create(switchFlow.run(FlowContext.create()))
-        .assertNext(assertAndLog(state -> {
-          assertThat(state.getContext().get("Case 1")).isNull();
-          assertThat(state.getContext().get("Case 2")).isNull();
-          assertThat(state.getContext().get("Default Case")).isNull();
-          assertThat(state.getStatus()).isEqualTo(State.Status.ERROR);
-          assertThat(state.getAllErrors()).hasSize(1);
-          assertThat(state.getAllRecoveredErrors()).isEmpty();
-          assertThat(state.getAllWarnings()).isEmpty();
+        .assertNext(assertAndLog(globalReport -> {
+          assertThat(globalReport.getContext().get("Case 1")).isNull();
+          assertThat(globalReport.getContext().get("Case 2")).isNull();
+          assertThat(globalReport.getContext().get("Default Case")).isNull();
+          assertThat(globalReport.getStatus()).isEqualTo(Status.ERROR);
+          assertThat(globalReport.getAllErrors()).hasSize(1);
+          assertThat(globalReport.getAllRecoveredErrors()).isEmpty();
+          assertThat(globalReport.getAllWarnings()).isEmpty();
         }))
         .verifyComplete();
   }
@@ -154,7 +153,7 @@ final class SwitchFlowTest {
     SwitchFlow<FlowContext> switchFlow = SwitchFlowBuilder
         .defaultBuilder()
         .named("Test")
-        .switchCondition(state -> "Case 1")
+        .switchCondition(globalReport -> "Case 1")
         .switchCase("Case 1", ErrorRawStepFlow.flowNamed("Case 1"))
         .switchCase("Case 2", SuccessStepFlow.flowNamed("Case 2"))
         .defaultCase(SuccessStepFlow.flowNamed("Default Case"))
@@ -162,14 +161,14 @@ final class SwitchFlowTest {
 
     StepVerifier
         .create(switchFlow.run(FlowContext.create()))
-        .assertNext(assertAndLog(state -> {
-          assertThat(state.getContext().get("Case 1")).isNull();
-          assertThat(state.getContext().get("Case 2")).isNull();
-          assertThat(state.getContext().get("Default Case")).isNull();
-          assertThat(state.getStatus()).isEqualTo(State.Status.ERROR);
-          assertThat(state.getAllErrors()).hasSize(1);
-          assertThat(state.getAllRecoveredErrors()).isEmpty();
-          assertThat(state.getAllWarnings()).isEmpty();
+        .assertNext(assertAndLog(globalReport -> {
+          assertThat(globalReport.getContext().get("Case 1")).isNull();
+          assertThat(globalReport.getContext().get("Case 2")).isNull();
+          assertThat(globalReport.getContext().get("Default Case")).isNull();
+          assertThat(globalReport.getStatus()).isEqualTo(Status.ERROR);
+          assertThat(globalReport.getAllErrors()).hasSize(1);
+          assertThat(globalReport.getAllRecoveredErrors()).isEmpty();
+          assertThat(globalReport.getAllWarnings()).isEmpty();
         }))
         .verifyComplete();
   }
@@ -179,7 +178,7 @@ final class SwitchFlowTest {
     SwitchFlow<FlowContext> switchFlow = SwitchFlowBuilder
         .defaultBuilder()
         .named("Test")
-        .switchCondition(state -> "Case 1")
+        .switchCondition(globalReport -> "Case 1")
         .switchCase("Case 1", ErrorMonoStepFlow.flowNamed("Case 1"))
         .switchCase("Case 2", SuccessStepFlow.flowNamed("Case 2"))
         .defaultCase(SuccessStepFlow.flowNamed("Default Case"))
@@ -187,14 +186,14 @@ final class SwitchFlowTest {
 
     StepVerifier
         .create(switchFlow.run(FlowContext.create()))
-        .assertNext(assertAndLog(state -> {
-          assertThat(state.getContext().get("Case 1")).isNull();
-          assertThat(state.getContext().get("Case 2")).isNull();
-          assertThat(state.getContext().get("Default Case")).isNull();
-          assertThat(state.getStatus()).isEqualTo(State.Status.ERROR);
-          assertThat(state.getAllErrors()).hasSize(1);
-          assertThat(state.getAllRecoveredErrors()).isEmpty();
-          assertThat(state.getAllWarnings()).isEmpty();
+        .assertNext(assertAndLog(globalReport -> {
+          assertThat(globalReport.getContext().get("Case 1")).isNull();
+          assertThat(globalReport.getContext().get("Case 2")).isNull();
+          assertThat(globalReport.getContext().get("Default Case")).isNull();
+          assertThat(globalReport.getStatus()).isEqualTo(Status.ERROR);
+          assertThat(globalReport.getAllErrors()).hasSize(1);
+          assertThat(globalReport.getAllRecoveredErrors()).isEmpty();
+          assertThat(globalReport.getAllWarnings()).isEmpty();
         }))
         .verifyComplete();
   }
@@ -204,7 +203,7 @@ final class SwitchFlowTest {
     SwitchFlow<FlowContext> switchFlow = SwitchFlowBuilder
         .defaultBuilder()
         .named("Test")
-        .switchCondition(state -> "Case 1")
+        .switchCondition(globalReport -> "Case 1")
         .switchCase("Case 1", WarningStepFlow.flowNamed("Case 1"))
         .switchCase("Case 2", SuccessStepFlow.flowNamed("Case 2"))
         .defaultCase(SuccessStepFlow.flowNamed("Default Case"))
@@ -212,14 +211,14 @@ final class SwitchFlowTest {
 
     StepVerifier
         .create(switchFlow.run(FlowContext.create()))
-        .assertNext(assertAndLog(state -> {
-          assertThat(state.getContext().get("Case 1")).isEqualTo("Case 1");
-          assertThat(state.getContext().get("Case 2")).isNull();
-          assertThat(state.getContext().get("Default Case")).isNull();
-          assertThat(state.getStatus()).isEqualTo(State.Status.WARNING);
-          assertThat(state.getAllRecoveredErrors()).isEmpty();
-          assertThat(state.getAllErrors()).isEmpty();
-          assertThat(state.getAllWarnings()).hasSize(1);
+        .assertNext(assertAndLog(globalReport -> {
+          assertThat(globalReport.getContext().get("Case 1")).isEqualTo("Case 1");
+          assertThat(globalReport.getContext().get("Case 2")).isNull();
+          assertThat(globalReport.getContext().get("Default Case")).isNull();
+          assertThat(globalReport.getStatus()).isEqualTo(Status.WARNING);
+          assertThat(globalReport.getAllRecoveredErrors()).isEmpty();
+          assertThat(globalReport.getAllErrors()).isEmpty();
+          assertThat(globalReport.getAllWarnings()).hasSize(1);
         }))
         .verifyComplete();
   }
@@ -229,7 +228,7 @@ final class SwitchFlowTest {
     SwitchFlow<FlowContext> switchFlow = SwitchFlowBuilder
         .defaultBuilder()
         .named("Test")
-        .switchCondition(state -> "Case 2")
+        .switchCondition(globalReport -> "Case 2")
         .switchCase("Case 1", SuccessStepFlow.flowNamed("Case 1"))
         .switchCase("Case 2", SuccessStepFlow.flowNamed("Case 2"))
         .defaultCase(SuccessStepFlow.flowNamed("Default Case"))
@@ -237,15 +236,15 @@ final class SwitchFlowTest {
 
     StepVerifier
         .create(switchFlow.run(FlowContext.create()))
-        .assertNext(assertAndLog(state -> {
-          assertThat(state.getName()).isEqualTo("Test");
-          assertThat(state.getContext().get("Case 2")).isEqualTo("Case 2");
-          assertThat(state.getContext().get("Case 1")).isNull();
-          assertThat(state.getContext().get("Default Case")).isNull();
-          assertThat(state.getStatus()).isEqualTo(State.Status.SUCCESS);
-          assertThat(state.getAllRecoveredErrors()).isEmpty();
-          assertThat(state.getAllErrors()).isEmpty();
-          assertThat(state.getAllWarnings()).isEmpty();
+        .assertNext(assertAndLog(globalReport -> {
+          assertThat(globalReport.getName()).isEqualTo("Test");
+          assertThat(globalReport.getContext().get("Case 2")).isEqualTo("Case 2");
+          assertThat(globalReport.getContext().get("Case 1")).isNull();
+          assertThat(globalReport.getContext().get("Default Case")).isNull();
+          assertThat(globalReport.getStatus()).isEqualTo(Status.SUCCESS);
+          assertThat(globalReport.getAllRecoveredErrors()).isEmpty();
+          assertThat(globalReport.getAllErrors()).isEmpty();
+          assertThat(globalReport.getAllWarnings()).isEmpty();
         }))
         .verifyComplete();
   }
@@ -255,7 +254,7 @@ final class SwitchFlowTest {
     SwitchFlow<FlowContext> switchFlow = SwitchFlowBuilder
         .defaultBuilder()
         .named("Test")
-        .switchCondition(state -> "Case 2")
+        .switchCondition(globalReport -> "Case 2")
         .switchCase("Case 1", SuccessStepFlow.flowNamed("Case 1"))
         .switchCase("Case 2", ErrorStepFlow.flowNamed("Case 2"))
         .defaultCase(SuccessStepFlow.flowNamed("Default Case"))
@@ -263,14 +262,14 @@ final class SwitchFlowTest {
 
     StepVerifier
         .create(switchFlow.run(FlowContext.create()))
-        .assertNext(assertAndLog(state -> {
-          assertThat(state.getContext().get("Case 1")).isNull();
-          assertThat(state.getContext().get("Case 2")).isNull();
-          assertThat(state.getContext().get("Default Case")).isNull();
-          assertThat(state.getStatus()).isEqualTo(State.Status.ERROR);
-          assertThat(state.getAllErrors()).hasSize(1);
-          assertThat(state.getAllRecoveredErrors()).isEmpty();
-          assertThat(state.getAllWarnings()).isEmpty();
+        .assertNext(assertAndLog(globalReport -> {
+          assertThat(globalReport.getContext().get("Case 1")).isNull();
+          assertThat(globalReport.getContext().get("Case 2")).isNull();
+          assertThat(globalReport.getContext().get("Default Case")).isNull();
+          assertThat(globalReport.getStatus()).isEqualTo(Status.ERROR);
+          assertThat(globalReport.getAllErrors()).hasSize(1);
+          assertThat(globalReport.getAllRecoveredErrors()).isEmpty();
+          assertThat(globalReport.getAllWarnings()).isEmpty();
         }))
         .verifyComplete();
   }
@@ -280,7 +279,7 @@ final class SwitchFlowTest {
     SwitchFlow<FlowContext> switchFlow = SwitchFlowBuilder
         .defaultBuilder()
         .named("Test")
-        .switchCondition(state -> "Case 2")
+        .switchCondition(globalReport -> "Case 2")
         .switchCase("Case 1", SuccessStepFlow.flowNamed("Case 1"))
         .switchCase("Case 2", WarningStepFlow.flowNamed("Case 2"))
         .defaultCase(SuccessStepFlow.flowNamed("Default Case"))
@@ -288,14 +287,14 @@ final class SwitchFlowTest {
 
     StepVerifier
         .create(switchFlow.run(FlowContext.create()))
-        .assertNext(assertAndLog(state -> {
-          assertThat(state.getContext().get("Case 2")).isEqualTo("Case 2");
-          assertThat(state.getContext().get("Case 1")).isNull();
-          assertThat(state.getContext().get("Default Case")).isNull();
-          assertThat(state.getStatus()).isEqualTo(State.Status.WARNING);
-          assertThat(state.getAllRecoveredErrors()).isEmpty();
-          assertThat(state.getAllErrors()).isEmpty();
-          assertThat(state.getAllWarnings()).hasSize(1);
+        .assertNext(assertAndLog(globalReport -> {
+          assertThat(globalReport.getContext().get("Case 2")).isEqualTo("Case 2");
+          assertThat(globalReport.getContext().get("Case 1")).isNull();
+          assertThat(globalReport.getContext().get("Default Case")).isNull();
+          assertThat(globalReport.getStatus()).isEqualTo(Status.WARNING);
+          assertThat(globalReport.getAllRecoveredErrors()).isEmpty();
+          assertThat(globalReport.getAllErrors()).isEmpty();
+          assertThat(globalReport.getAllWarnings()).hasSize(1);
         }))
         .verifyComplete();
   }
@@ -305,7 +304,7 @@ final class SwitchFlowTest {
     SwitchFlow<FlowContext> switchFlow = SwitchFlowBuilder
         .defaultBuilder()
         .named("Test")
-        .switchCondition(state -> "Case 3")
+        .switchCondition(globalReport -> "Case 3")
         .switchCase("Case 1", SuccessStepFlow.flowNamed("Case 1"))
         .switchCase("Case 2", SuccessStepFlow.flowNamed("Case 2"))
         .defaultCase(SuccessStepFlow.flowNamed("Default Case"))
@@ -313,15 +312,15 @@ final class SwitchFlowTest {
 
     StepVerifier
         .create(switchFlow.run(FlowContext.create()))
-        .assertNext(assertAndLog(state -> {
-          assertThat(state.getName()).isEqualTo("Test");
-          assertThat(state.getContext().get("Case 2")).isNull();
-          assertThat(state.getContext().get("Case 1")).isNull();
-          assertThat(state.getContext().get("Default Case")).isEqualTo("Default Case");
-          assertThat(state.getStatus()).isEqualTo(State.Status.SUCCESS);
-          assertThat(state.getAllRecoveredErrors()).isEmpty();
-          assertThat(state.getAllErrors()).isEmpty();
-          assertThat(state.getAllWarnings()).isEmpty();
+        .assertNext(assertAndLog(globalReport -> {
+          assertThat(globalReport.getName()).isEqualTo("Test");
+          assertThat(globalReport.getContext().get("Case 2")).isNull();
+          assertThat(globalReport.getContext().get("Case 1")).isNull();
+          assertThat(globalReport.getContext().get("Default Case")).isEqualTo("Default Case");
+          assertThat(globalReport.getStatus()).isEqualTo(Status.SUCCESS);
+          assertThat(globalReport.getAllRecoveredErrors()).isEmpty();
+          assertThat(globalReport.getAllErrors()).isEmpty();
+          assertThat(globalReport.getAllWarnings()).isEmpty();
         }))
         .verifyComplete();
   }
@@ -331,7 +330,7 @@ final class SwitchFlowTest {
     SwitchFlow<FlowContext> switchFlow = SwitchFlowBuilder
         .defaultBuilder()
         .named("Test")
-        .switchCondition(state -> "Case 3")
+        .switchCondition(globalReport -> "Case 3")
         .switchCase("Case 1", SuccessStepFlow.flowNamed("Case 1"))
         .switchCase("Case 2", SuccessStepFlow.flowNamed("Case 2"))
         .defaultCase(ErrorStepFlow.flowNamed("Default Case"))
@@ -339,14 +338,14 @@ final class SwitchFlowTest {
 
     StepVerifier
         .create(switchFlow.run(FlowContext.create()))
-        .assertNext(assertAndLog(state -> {
-          assertThat(state.getContext().get("Case 1")).isNull();
-          assertThat(state.getContext().get("Case 2")).isNull();
-          assertThat(state.getContext().get("Default Case")).isNull();
-          assertThat(state.getStatus()).isEqualTo(State.Status.ERROR);
-          assertThat(state.getAllErrors()).hasSize(1);
-          assertThat(state.getAllRecoveredErrors()).isEmpty();
-          assertThat(state.getAllWarnings()).isEmpty();
+        .assertNext(assertAndLog(globalReport -> {
+          assertThat(globalReport.getContext().get("Case 1")).isNull();
+          assertThat(globalReport.getContext().get("Case 2")).isNull();
+          assertThat(globalReport.getContext().get("Default Case")).isNull();
+          assertThat(globalReport.getStatus()).isEqualTo(Status.ERROR);
+          assertThat(globalReport.getAllErrors()).hasSize(1);
+          assertThat(globalReport.getAllRecoveredErrors()).isEmpty();
+          assertThat(globalReport.getAllWarnings()).isEmpty();
         }))
         .verifyComplete();
   }
@@ -356,7 +355,7 @@ final class SwitchFlowTest {
     SwitchFlow<FlowContext> switchFlow = SwitchFlowBuilder
         .defaultBuilder()
         .named("Test")
-        .switchCondition(state -> "Case 3")
+        .switchCondition(globalReport -> "Case 3")
         .switchCase("Case 1", SuccessStepFlow.flowNamed("Case 1"))
         .switchCase("Case 2", SuccessStepFlow.flowNamed("Case 2"))
         .defaultCase(WarningStepFlow.flowNamed("Default Case"))
@@ -364,14 +363,14 @@ final class SwitchFlowTest {
 
     StepVerifier
         .create(switchFlow.run(FlowContext.create()))
-        .assertNext(assertAndLog(state -> {
-          assertThat(state.getContext().get("Case 2")).isNull();
-          assertThat(state.getContext().get("Case 1")).isNull();
-          assertThat(state.getContext().get("Default Case")).isEqualTo("Default Case");
-          assertThat(state.getStatus()).isEqualTo(State.Status.WARNING);
-          assertThat(state.getAllRecoveredErrors()).isEmpty();
-          assertThat(state.getAllErrors()).isEmpty();
-          assertThat(state.getAllWarnings()).hasSize(1);
+        .assertNext(assertAndLog(globalReport -> {
+          assertThat(globalReport.getContext().get("Case 2")).isNull();
+          assertThat(globalReport.getContext().get("Case 1")).isNull();
+          assertThat(globalReport.getContext().get("Default Case")).isEqualTo("Default Case");
+          assertThat(globalReport.getStatus()).isEqualTo(Status.WARNING);
+          assertThat(globalReport.getAllRecoveredErrors()).isEmpty();
+          assertThat(globalReport.getAllErrors()).isEmpty();
+          assertThat(globalReport.getAllWarnings()).hasSize(1);
         }))
         .verifyComplete();
   }
@@ -381,7 +380,7 @@ final class SwitchFlowTest {
     SwitchFlow<FlowContext> switchFlow = SwitchFlowBuilder
         .defaultBuilder()
         .named("Test")
-        .switchCondition(state -> {
+        .switchCondition(globalReport -> {
           throw new RuntimeException("Raw error");
         })
         .switchCase("Case 1", SuccessStepFlow.flowNamed("Case 1"))
@@ -391,14 +390,14 @@ final class SwitchFlowTest {
 
     StepVerifier
         .create(switchFlow.run(FlowContext.create()))
-        .assertNext(assertAndLog(state -> {
-          assertThat(state.getContext().get("Case 1")).isNull();
-          assertThat(state.getContext().get("Case 2")).isNull();
-          assertThat(state.getContext().get("Default Case")).isNull();
-          assertThat(state.getStatus()).isEqualTo(State.Status.ERROR);
-          assertThat(state.getAllRecoveredErrors()).isEmpty();
-          assertThat(state.getAllErrors()).hasSize(1);
-          assertThat(state.getAllWarnings()).isEmpty();
+        .assertNext(assertAndLog(globalReport -> {
+          assertThat(globalReport.getContext().get("Case 1")).isNull();
+          assertThat(globalReport.getContext().get("Case 2")).isNull();
+          assertThat(globalReport.getContext().get("Default Case")).isNull();
+          assertThat(globalReport.getStatus()).isEqualTo(Status.ERROR);
+          assertThat(globalReport.getAllRecoveredErrors()).isEmpty();
+          assertThat(globalReport.getAllErrors()).hasSize(1);
+          assertThat(globalReport.getAllWarnings()).isEmpty();
         }))
         .verifyComplete();
   }
@@ -408,7 +407,7 @@ final class SwitchFlowTest {
     assertThatExceptionOfType(FlowBuilderException.class).isThrownBy(() -> SwitchFlowBuilder
         .defaultBuilder()
         .named(null)
-        .switchCondition(state -> "Case 1")
+        .switchCondition(globalReport -> "Case 1")
         .switchCase("Case 1", SuccessStepFlow.flowNamed("Case 1"))
         .defaultCase(SuccessStepFlow.flowNamed("Default False"))
         .build()
@@ -420,7 +419,7 @@ final class SwitchFlowTest {
     assertThatExceptionOfType(FlowBuilderException.class).isThrownBy(() -> SwitchFlowBuilder
         .defaultBuilder()
         .named("Test")
-        .switchCondition(state -> "Case 1")
+        .switchCondition(globalReport -> "Case 1")
         .switchCase("Case 1", SuccessStepFlow.flowNamed("Case 1"))
         .defaultCase(null)
         .build()
@@ -432,7 +431,7 @@ final class SwitchFlowTest {
     assertThatExceptionOfType(FlowBuilderException.class).isThrownBy(() -> SwitchFlowBuilder
         .defaultBuilder()
         .named("Test")
-        .switchCondition(state -> "Case 1")
+        .switchCondition(globalReport -> "Case 1")
         .switchCase(null, SuccessStepFlow.flowNamed("Case 1"))
         .defaultCase(SuccessStepFlow.flowNamed("Default False"))
         .build()
@@ -444,7 +443,7 @@ final class SwitchFlowTest {
     assertThatExceptionOfType(FlowBuilderException.class).isThrownBy(() -> SwitchFlowBuilder
         .defaultBuilder()
         .named("Test")
-        .switchCondition(state -> "Case 1")
+        .switchCondition(globalReport -> "Case 1")
         .switchCase("Case 1", null)
         .defaultCase(SuccessStepFlow.flowNamed("Default False"))
         .build()

@@ -3,7 +3,7 @@ package fr.jtools.reactorflow.builder;
 import fr.jtools.reactorflow.exception.FlowBuilderException;
 import fr.jtools.reactorflow.flow.Step;
 import fr.jtools.reactorflow.flow.StepFlow;
-import fr.jtools.reactorflow.state.FlowContext;
+import fr.jtools.reactorflow.report.FlowContext;
 
 import java.util.Objects;
 

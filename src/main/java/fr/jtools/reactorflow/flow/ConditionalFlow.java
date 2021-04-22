@@ -1,9 +1,9 @@
 package fr.jtools.reactorflow.flow;
 
 import fr.jtools.reactorflow.exception.FlowTechnicalException;
-import fr.jtools.reactorflow.state.FlowContext;
-import fr.jtools.reactorflow.state.Metadata;
-import fr.jtools.reactorflow.state.State;
+import fr.jtools.reactorflow.report.FlowContext;
+import fr.jtools.reactorflow.report.Metadata;
+import fr.jtools.reactorflow.report.Report;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -30,7 +30,7 @@ public final class ConditionalFlow<T extends FlowContext> extends Flow<T> {
   /**
    * The condition.
    */
-  private final Predicate<State<T>> condition;
+  private final Predicate<T> condition;
 
   /**
    * Static method used to create a {@link ConditionalFlow}.
@@ -42,11 +42,11 @@ public final class ConditionalFlow<T extends FlowContext> extends Flow<T> {
    * @param <T>           Context type
    * @return A {@link ConditionalFlow}
    */
-  public static <T extends FlowContext> ConditionalFlow<T> create(String name, Predicate<State<T>> condition, Flow<T> flowCaseTrue, Flow<T> flowCaseFalse) {
+  public static <T extends FlowContext> ConditionalFlow<T> create(String name, Predicate<T> condition, Flow<T> flowCaseTrue, Flow<T> flowCaseFalse) {
     return new ConditionalFlow<>(name, condition, flowCaseTrue, flowCaseFalse);
   }
 
-  private ConditionalFlow(String name, Predicate<State<T>> condition, Flow<T> flowCaseTrue, Flow<T> flowCaseFalse) {
+  private ConditionalFlow(String name, Predicate<T> condition, Flow<T> flowCaseTrue, Flow<T> flowCaseFalse) {
     this.name = name;
     this.condition = condition;
     this.flowCaseTrue = flowCaseTrue;
@@ -67,22 +67,21 @@ public final class ConditionalFlow<T extends FlowContext> extends Flow<T> {
    * {@link ConditionalFlow} execution.
    * It chooses between {@link ConditionalFlow#flowCaseTrue} and {@link ConditionalFlow#flowCaseFalse} depending on {@link ConditionalFlow#condition}.
    *
-   * @param previousState The previous {@link State}
-   * @param metadata      A {@link Metadata} object
-   * @return The new {@link State}
+   * @param context  The previous {@link T} context
+   * @param metadata A {@link Metadata} object
+   * @return A {@link Report}
    */
   @Override
-  protected final Mono<State<T>> execution(State<T> previousState, Metadata<?> metadata) {
+  protected final Mono<Report<T>> execution(T context, Metadata<?> metadata) {
     return Mono
-        .defer(() -> Mono.just(this.condition.test(previousState)))
+        .defer(() -> Mono.just(this.condition.test(context)))
         .onErrorMap(error -> new FlowTechnicalException(
-            this,
             error,
             String.format("Error occurred during condition evaluation: %s", error.getMessage())
         ))
         .flatMap(result -> Boolean.TRUE.equals(result) ?
-            this.flowCaseTrue.execute(previousState, Metadata.from(metadata)) :
-            this.flowCaseFalse.execute(previousState, Metadata.from(metadata))
+            this.flowCaseTrue.execute(context, Metadata.from(metadata)) :
+            this.flowCaseFalse.execute(context, Metadata.from(metadata))
         );
   }
 

@@ -1,6 +1,6 @@
 package fr.jtools.reactorflow.flow;
 
-import fr.jtools.reactorflow.state.State;
+import fr.jtools.reactorflow.report.Status;
 
 import java.util.function.Predicate;
 
@@ -21,7 +21,7 @@ public final class FlowStatusPolicy implements Predicate<Flow<?>> {
   public static FlowStatusPolicy flowAndOneChildSucceeded() {
     return new FlowStatusPolicy(
         flow -> {
-          Predicate<Flow<?>> isSuccessOrWarning = f -> (f.getStatus().equals(State.Status.SUCCESS) || f.getStatus().equals(State.Status.WARNING));
+          Predicate<Flow<?>> isSuccessOrWarning = f -> (f.getStatus().equals(Status.SUCCESS) || f.getStatus().equals(Status.WARNING));
           return flow.getErrors().isEmpty() && flow.getChildren().stream().anyMatch(isSuccessOrWarning);
         }
     );
@@ -35,7 +35,7 @@ public final class FlowStatusPolicy implements Predicate<Flow<?>> {
   public static FlowStatusPolicy flowAndAllChildrenSucceeded() {
     return new FlowStatusPolicy(
         flow -> {
-          Predicate<Flow<?>> isSuccessOrWarning = f -> (f.getStatus().equals(State.Status.SUCCESS) || f.getStatus().equals(State.Status.WARNING));
+          Predicate<Flow<?>> isSuccessOrWarning = f -> (f.getStatus().equals(Status.SUCCESS) || f.getStatus().equals(Status.WARNING));
           return flow.getErrors().isEmpty() && flow.getChildren().stream().allMatch(isSuccessOrWarning);
         }
     );
@@ -48,7 +48,7 @@ public final class FlowStatusPolicy implements Predicate<Flow<?>> {
    */
   public static FlowStatusPolicy flowOrChildHasWarning() {
     return new FlowStatusPolicy(
-        flow -> !flow.getWarnings().isEmpty() || flow.getChildren().stream().anyMatch(f -> f.getStatus().equals(State.Status.WARNING))
+        flow -> !flow.getWarnings().isEmpty() || flow.getChildren().stream().anyMatch(f -> f.getStatus().equals(Status.WARNING))
     );
   }
 

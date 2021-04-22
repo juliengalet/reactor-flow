@@ -2,9 +2,9 @@ package fr.jtools.reactorflow.flow;
 
 import fr.jtools.reactorflow.builder.ParallelFlowBuilder;
 import fr.jtools.reactorflow.exception.FlowTechnicalException;
-import fr.jtools.reactorflow.state.FlowContext;
-import fr.jtools.reactorflow.state.Metadata;
-import fr.jtools.reactorflow.state.State;
+import fr.jtools.reactorflow.report.FlowContext;
+import fr.jtools.reactorflow.report.Metadata;
+import fr.jtools.reactorflow.report.Report;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -32,9 +32,9 @@ public final class ParallelFlow<T extends FlowContext, M> extends Flow<T> {
    */
   private final List<Flow<T>> flows;
   /**
-   * The merge strategy used for merging all {@link State} states after all {@link Flow}s execution.
+   * The merge strategy used for merging all {@link T} contexts after all {@link Flow}s execution.
    */
-  private final BinaryOperator<State<T>> mergeStrategy;
+  private final BinaryOperator<T> mergeStrategy;
   /**
    * The function used to extract an array from {@link T} context,
    * in order to execute {@link ParallelFlow#flowToParallelize}, with items from extracted array as {@link M} metadata.
@@ -63,11 +63,11 @@ public final class ParallelFlow<T extends FlowContext, M> extends Flow<T> {
    * @param <M>                  Metadata type
    * @return A {@link ParallelFlow}
    */
-  public static <T extends FlowContext, M> ParallelFlow<T, M> create(String name, List<Flow<T>> flows, BinaryOperator<State<T>> mergeStrategy, Function<T, ? extends Iterable<M>> parallelizeFromArray, Flow<T> flowToParallelize) {
+  public static <T extends FlowContext, M> ParallelFlow<T, M> create(String name, List<Flow<T>> flows, BinaryOperator<T> mergeStrategy, Function<T, ? extends Iterable<M>> parallelizeFromArray, Flow<T> flowToParallelize) {
     return new ParallelFlow<>(name, flows, mergeStrategy, parallelizeFromArray, flowToParallelize);
   }
 
-  private ParallelFlow(String name, List<Flow<T>> flows, BinaryOperator<State<T>> mergeStrategy, Function<T, ? extends Iterable<M>> parallelizeFromArray, Flow<T> flowToParallelize) {
+  private ParallelFlow(String name, List<Flow<T>> flows, BinaryOperator<T> mergeStrategy, Function<T, ? extends Iterable<M>> parallelizeFromArray, Flow<T> flowToParallelize) {
     this.name = name;
     this.flows = flows;
     this.mergeStrategy = mergeStrategy;
@@ -90,32 +90,32 @@ public final class ParallelFlow<T extends FlowContext, M> extends Flow<T> {
    * It chooses between {@link ParallelFlow#executeFlows} and {@link ParallelFlow#executeFlowOnArray},
    * if {@link ParallelFlow#parallelizeFromArray} is defined or not.
    *
-   * @param previousState The previous {@link State}
-   * @param metadata      A {@link Metadata} object
-   * @return The new {@link State}
+   * @param context  The previous {@link T} context
+   * @param metadata A {@link Metadata} object
+   * @return A {@link Report}
    */
   @Override
-  protected final Mono<State<T>> execution(State<T> previousState, Metadata<?> metadata) {
+  protected final Mono<Report<T>> execution(T context, Metadata<?> metadata) {
     if (Objects.nonNull(this.parallelizeFromArray)) {
-      return executeFlowOnArray(previousState, metadata);
+      return executeFlowOnArray(context, metadata);
     }
 
-    return executeFlows(previousState, metadata);
+    return executeFlows(context, metadata);
   }
 
   /**
    * {@link ParallelFlow#flows} execution.
    * It executes all the {@link Flow} in {@link ParallelFlow#flows} array, in parallel.
    *
-   * @param previousState The previous {@link State}
-   * @param metadata      A {@link Metadata} object
-   * @return The new {@link State}
+   * @param context  The previous {@link T} context
+   * @param metadata A {@link Metadata} object
+   * @return A {@link Report}
    */
-  private Mono<State<T>> executeFlows(State<T> previousState, Metadata<?> metadata) {
+  private Mono<Report<T>> executeFlows(T context, Metadata<?> metadata) {
     return Flux
-        .merge(this.flows.stream().map(flow -> flow.execute(previousState, Metadata.from(metadata))).collect(Collectors.toList()))
+        .merge(this.flows.stream().map(flow -> flow.execute(context, Metadata.from(metadata))).collect(Collectors.toList()))
         .collectList()
-        .map(newReports -> this.mergeReports(newReports, previousState));
+        .map(newReports -> this.mergeReports(newReports, context));
   }
 
   /**
@@ -123,17 +123,16 @@ public final class ParallelFlow<T extends FlowContext, M> extends Flow<T> {
    * It executes copies of {@link ParallelFlow#flowToParallelize} for each item contains in the return of {@link ParallelFlow#flowsToParallelizeFromArray}.
    * It also adds as {@link M} metadata the item from the array.
    *
-   * @param previousState The previous {@link State}
-   * @param metadata      A {@link Metadata} object
-   * @return The new {@link State}
+   * @param context  The previous {@link T} context
+   * @param metadata A {@link Metadata} object
+   * @return A {@link Report}
    */
-  private Mono<State<T>> executeFlowOnArray(State<T> previousState, Metadata<?> metadata) {
+  private Mono<Report<T>> executeFlowOnArray(T context, Metadata<?> metadata) {
     AtomicInteger counter = new AtomicInteger();
 
     return Mono
-        .defer(() -> Mono.just(this.parallelizeFromArray.apply(previousState.getContext())))
+        .defer(() -> Mono.just(this.parallelizeFromArray.apply(context)))
         .onErrorMap(error -> new FlowTechnicalException(
-            this,
             error,
             String.format("Error occurred during parallelizeFromArray evaluation: %s", error.getMessage())
         ))
@@ -143,12 +142,12 @@ public final class ParallelFlow<T extends FlowContext, M> extends Flow<T> {
           this.flowsToParallelizeFromArray.add(copiedFlow);
 
           return copiedFlow.execute(
-              previousState,
+              context,
               Metadata.create(data).addErrors(metadata.getErrors()).addWarnings(metadata.getWarnings())
           );
         })
         .collectList()
-        .map(newReports -> this.mergeReports(newReports, previousState));
+        .map(newReports -> this.mergeReports(newReports, context));
   }
 
   /**
@@ -196,24 +195,26 @@ public final class ParallelFlow<T extends FlowContext, M> extends Flow<T> {
   }
 
   /**
-   * Method used to merge all the {@link State} resulting of the {@link ParallelFlow execution}.
+   * Method used to merge all the {@link T} context resulting of the {@link ParallelFlow execution}.
    * The default use case is to use {@link ParallelFlowBuilder#defaultMergeStrategy()}, that will keep a random one.
-   * As {@link T} context should be thread safe, all executed {@link Flow} will populate it, and we can keep any of the {@link State}.
+   * As {@link T} context should be thread safe, all executed {@link Flow} will populate it, and we can keep any of it.
    *
-   * @param newStates     The new {@link State}s
-   * @param previousState The previous {@link State}, if {@link ParallelFlow#mergeStrategy} fails
-   * @return The merged {@link State}
+   * @param newReports      The new {@link Report}s
+   * @param previousContext The previous {@link T} context, returned if {@link ParallelFlow#mergeStrategy} fails
+   * @return A new report {@link Report} containing the merged {@link T} context
    */
-  private State<T> mergeReports(List<State<T>> newStates, State<T> previousState) {
+  private Report<T> mergeReports(List<Report<T>> newReports, T previousContext) {
     try {
-      return newStates.stream().reduce(previousState, this.mergeStrategy);
+      return Report.success(newReports
+          .stream()
+          .map(Report::getContext)
+          .reduce(previousContext, this.mergeStrategy)
+      );
     } catch (Exception exception) {
-      this.addWarning(new FlowTechnicalException(
-          this,
+      return Report.error(previousContext, new FlowTechnicalException(
           exception,
           String.format("Error occurred during mergeStrategy evaluation: %s", exception.getMessage())
       ));
-      return previousState;
     }
   }
 }

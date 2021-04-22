@@ -2,11 +2,13 @@ package fr.jtools.reactorflow.flow;
 
 import fr.jtools.reactorflow.exception.FlowException;
 import fr.jtools.reactorflow.exception.FlowTechnicalException;
-import fr.jtools.reactorflow.state.FlowContext;
-import fr.jtools.reactorflow.state.Metadata;
-import fr.jtools.reactorflow.state.State;
-import fr.jtools.reactorflow.utils.console.ConsoleStyle;
-import fr.jtools.reactorflow.utils.console.PrettyPrint;
+import fr.jtools.reactorflow.report.FlowContext;
+import fr.jtools.reactorflow.report.Metadata;
+import fr.jtools.reactorflow.report.GlobalReport;
+import fr.jtools.reactorflow.report.Report;
+import fr.jtools.reactorflow.report.Status;
+import fr.jtools.reactorflow.utils.ConsoleStyle;
+import fr.jtools.reactorflow.utils.PrettyPrint;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
@@ -15,8 +17,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
-import static fr.jtools.reactorflow.utils.console.LoggerUtils.colorize;
+import static fr.jtools.reactorflow.utils.LoggerUtils.colorize;
 
 /**
  * Abstract class managing all the {@link Flow}s.
@@ -34,9 +37,9 @@ public abstract class Flow<T extends FlowContext> implements PrettyPrint {
   protected Long startTime = 0L;
   /**
    * The status.
-   * Default is {@link State.Status#IGNORED} as the {@link Flow} is not executed.
+   * Default is {@link Status#IGNORED} as the {@link Flow} is not executed.
    */
-  protected State.Status status = State.Status.IGNORED;
+  protected Status status = Status.IGNORED;
   /**
    * A {@link List} containing all the errors.
    */
@@ -76,11 +79,11 @@ public abstract class Flow<T extends FlowContext> implements PrettyPrint {
   /**
    * Abstract method that should describe how the {@link Flow} is executed.
    *
-   * @param previousState The previous {@link State}
-   * @param metadata      A {@link Metadata} object
-   * @return A {@link Mono} containing the new {@link State}
+   * @param context  The previous {@link T} context
+   * @param metadata A {@link Metadata} object
+   * @return A {@link Mono} containing a {@link Report}
    */
-  protected abstract Mono<State<T>> execution(State<T> previousState, Metadata<?> metadata);
+  protected abstract Mono<Report<T>> execution(T context, Metadata<?> metadata);
 
   /**
    * Abstract method that should return a {@link List} containing the actual {@link Flow} children.
@@ -107,18 +110,18 @@ public abstract class Flow<T extends FlowContext> implements PrettyPrint {
   /**
    * Set {@link Flow} status.
    *
-   * @param status A {@link State.Status}
+   * @param status A {@link Status}
    */
-  private void setStatus(State.Status status) {
+  private void setStatus(Status status) {
     this.status = status;
   }
 
   /**
    * Get {@link Flow} status.
    *
-   * @return The {@link Flow} {@link State.Status}
+   * @return The {@link Flow} {@link Status}
    */
-  public final State.Status getStatus() {
+  public final Status getStatus() {
     return this.status;
   }
 
@@ -141,30 +144,12 @@ public abstract class Flow<T extends FlowContext> implements PrettyPrint {
   }
 
   /**
-   * Add a {@link FlowException} in {@link Flow#errors}.
-   *
-   * @param exception A {@link FlowException}
-   */
-  public final void addError(FlowException exception) {
-    this.errors.add(exception);
-  }
-
-  /**
    * Add a {@link List} of {@link FlowException} in {@link Flow#errors}.
    *
    * @param exceptions A {@link List} of {@link FlowException}
    */
-  public final void addErrors(List<FlowException> exceptions) {
+  private void addErrors(List<FlowException> exceptions) {
     this.errors.addAll(exceptions);
-  }
-
-  /**
-   * Add a {@link FlowException} in {@link Flow#warnings}.
-   *
-   * @param exception A {@link FlowException}
-   */
-  public final void addWarning(FlowException exception) {
-    this.warnings.add(exception);
   }
 
   /**
@@ -172,7 +157,7 @@ public abstract class Flow<T extends FlowContext> implements PrettyPrint {
    *
    * @param exceptions A {@link List} of {@link FlowException}
    */
-  public final void addWarnings(List<FlowException> exceptions) {
+  private void addWarnings(List<FlowException> exceptions) {
     this.warnings.addAll(exceptions);
   }
 
@@ -214,42 +199,54 @@ public abstract class Flow<T extends FlowContext> implements PrettyPrint {
 
   /**
    * The actual {@link Flow} execution.
-   * It runs {@link Flow#execution(State, Metadata)} and :
+   * It runs {@link Flow#execution(FlowContext, Metadata)} and :
    * <ul>
    *   <li>calls {@link Flow#setStartTime()}</li>
    *   <li>adds {@link FlowException} in {@link Flow#errors} in case of raw error</li>
    *   <li>calls {@link Flow#setEndTime()}</li>
    *   <li>
-   *     calls {@link Flow#setStatus(State.Status)} with {@link State.Status#SUCCESS}, {@link State.Status#WARNING} or {@link State.Status#ERROR},
+   *     calls {@link Flow#setStatus(Status)} with {@link Status#SUCCESS}, {@link Status#WARNING} or {@link Status#ERROR},
    *     by calling {@link Flow#flowOrChildrenHasError()} and {@link Flow#flowOrChildrenHasWarning()}
    *   </li>
    * </ul>
    *
-   * @param previousState The previous {@link State}
-   * @param metadata      A {@link Metadata} object
-   * @return The new {@link State}
+   * @param context  The previous {@link T} context
+   * @param metadata A {@link Metadata} object
+   * @return A {@link Report}
    */
-  protected final Mono<State<T>> execute(State<T> previousState, Metadata<?> metadata) {
+  protected final Mono<Report<T>> execute(T context, Metadata<?> metadata) {
     this.setStartTime();
-    return execution(previousState, metadata)
+    return execution(context, metadata)
         .onErrorResume(throwable -> {
-          if (throwable instanceof FlowException) {
-            this.addError((FlowException) throwable);
-          } else {
-            this.addError(new FlowTechnicalException(this, throwable, throwable.getMessage()));
-          }
+          FlowException rawError = throwable instanceof FlowException ?
+              (FlowException) throwable :
+              new FlowTechnicalException(throwable, throwable.getMessage());
           this.setEndTime();
-          this.setStatus(State.Status.ERROR);
-          return Mono.just(previousState);
+          this.setStatus(Status.ERROR);
+          return Mono.just(Report.error(context, rawError));
         })
-        .doOnNext(state -> {
+        .map(report -> {
           this.setEndTime();
-          this.setStatus(flowOrChildrenHasError() ?
-              State.Status.ERROR :
-              flowOrChildrenHasWarning() ?
-                  State.Status.WARNING :
-                  State.Status.SUCCESS
+          this.addWarnings(report
+              .getWarnings()
+              .stream()
+              .map(exception -> exception.flowConcerned(this))
+              .collect(Collectors.toList())
           );
+          this.addErrors(report
+              .getErrors()
+              .stream()
+              .map(exception -> exception.flowConcerned(this))
+              .collect(Collectors.toList())
+          );
+          this.setStatus(flowOrChildrenHasError() ?
+              Status.ERROR :
+              flowOrChildrenHasWarning() ?
+                  Status.WARNING :
+                  Status.SUCCESS
+          );
+          // Return success as now all errors and warnings are handled and stored in the flow.
+          return Report.success(report.getContext());
         });
   }
 
@@ -257,11 +254,11 @@ public abstract class Flow<T extends FlowContext> implements PrettyPrint {
    * Run the {@link Flow} and all its children with an initial {@link T} context.
    *
    * @param initialContext The initial context
-   * @return A {@link Mono} containing the resulting {@link State}
+   * @return A {@link Mono} containing the resulting {@link GlobalReport}
    */
-  public final Mono<State<T>> run(T initialContext) {
-    State<T> initialState = State.initiate(initialContext, this);
-    return this.execute(initialState, Metadata.empty());
+  public final Mono<GlobalReport<T>> run(T initialContext) {
+    return this.execute(initialContext, Metadata.empty())
+        .map(report -> GlobalReport.create(report.getContext(), this));
   }
 
   /**
@@ -332,7 +329,7 @@ public abstract class Flow<T extends FlowContext> implements PrettyPrint {
     stringBuilder.append(String.format(
         Locale.US,
         "%s - %s named %s ended in %s (%s)",
-        colorize(this.getStatus().name(), State.getStatusConsoleStyle(this.getStatus())),
+        colorize(this.getStatus().name(), GlobalReport.getStatusConsoleStyle(this.getStatus())),
         colorize(this.getClass().getSimpleName(), ConsoleStyle.BLUE_BOLD),
         colorize(this.getName(), ConsoleStyle.WHITE_BOLD),
         colorize(String.format(Locale.US, "%.2f ms", this.getDurationInMillis()), ConsoleStyle.MAGENTA_BOLD),
