@@ -4,7 +4,6 @@ import fr.jtools.reactorflow.utils.ConsoleStyle;
 import fr.jtools.reactorflow.utils.PrettyPrint;
 
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -59,7 +58,7 @@ public class FlowContext implements PrettyPrint {
             .map(entry -> String.format(
                 "%s - %s",
                 entry.getKey(),
-                Objects.nonNull(entry.getValue()) ? entry.getValue().toString() : "null"
+                entry.getValue().toString()
             ))
             .collect(Collectors.joining("\n"))
     );
@@ -75,7 +74,7 @@ public class FlowContext implements PrettyPrint {
             .map(entry -> String.format(
                 "%s - %s",
                 colorize(entry.getKey(), ConsoleStyle.BLUE_BOLD),
-                Objects.nonNull(entry.getValue()) ? entry.getValue().toString() : "null"
+                entry.getValue().toString()
             ))
             .collect(Collectors.joining("\n"))
     );

@@ -414,6 +414,17 @@ final class ParallelFlowTest {
   }
 
   @Test
+  final void givenNullParallelize_parallelFlow_shouldNotBuild() {
+    assertThatExceptionOfType(FlowBuilderException.class).isThrownBy(() -> ParallelFlowBuilder
+        .defaultBuilder()
+        .named("Parallel")
+        .parallelize(null)
+        .mergeStrategy(ParallelFlowBuilder.defaultMergeStrategy())
+        .build()
+    );
+  }
+
+  @Test
   final void givenNullMergeStrategy_parallelFlow_shouldNotBuild() {
     assertThatExceptionOfType(FlowBuilderException.class).isThrownBy(() -> ParallelFlowBuilder
         .defaultBuilder()
