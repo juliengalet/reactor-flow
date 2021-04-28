@@ -2,7 +2,7 @@ name: Java GitHub CD with Maven
 
 on:
   release:
-    types: [created]
+    types: [ created ]
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -20,6 +20,7 @@ jobs:
         run: mvn -B package --file pom.xml
 
       - name: Publish to GitHub Packages Apache Maven
-        run: mvn deploy -s $GITHUB_WORKSPACE/settings.xml
+        run: mvn deploy --file pom.xml -s settings.xml
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          USENAME: ${{github.actor}}
+          PASSWORD: ${{github.token}}
