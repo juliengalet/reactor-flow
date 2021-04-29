@@ -1,10 +1,11 @@
 name: Java GitHub CD with Maven
 
 on:
-  release:
-    types: [ created ]
+  pull_request:
+    types: [ opened, synchronize, reopened ]
 jobs:
   build:
+    name: Deploy Snapshot
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -13,14 +14,13 @@ jobs:
         with:
           java-version: '11'
           distribution: 'adopt'
-          server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
-          settings-path: ${{ github.workspace }} # location for the settings.xml file
+          server-id: github-snapshot # Value of the distributionManagement/repository/id field of the pom.xml
 
       - name: Build with Maven
         run: mvn -B package --file pom.xml
 
       - name: Publish to GitHub Packages Apache Maven
-        run: mvn deploy --file pom.xml -s settings.xml
+        run: mvn deploy --file pom.xml -s settings.xml -Denv.USERNAME=${USERNAME} -Denv.PASSWORD=${PASSWORD} -Dmaven.test.skip=true -DaltDeploymentRepository=github-snapshot::default::https://maven.pkg.github.com/juliengalet/reactor-flow
         env:
-          USENAME: ${{github.actor}}
+          USERNAME: ${{github.actor}}
           PASSWORD: ${{github.token}}
