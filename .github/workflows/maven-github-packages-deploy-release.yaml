@@ -20,6 +20,14 @@ jobs:
       - name: Build with Maven
         run: mvn -B package --file pom.xml
 
+      - name: Setup GitHub user information
+        run: |
+          git config --global user.email ${CI_GITHUB_USER}
+          git config --global user.name ${CI_GITHUB_EMAIL}
+        env:
+          CI_GITHUB_USER: ${{ secrets.CI_GITHUB_USER }}
+          CI_GITHUB_EMAIL: ${{ secrets.CI_GITHUB_EMAIL }}
+
       - name: Publish to GitHub Packages Apache Maven
         run: mvn --file pom.xml -s settings.xml release:clean release:prepare release:perform -Dusername=${USERNAME} -Dpassword=${PASSWORD} -Darguments="-Denv.USERNAME=${USERNAME} -Denv.PASSWORD=${PASSWORD} -Dmaven.test.skip=true -DaltDeploymentRepository=github-release::default::https://maven.pkg.github.com/juliengalet/reactor-flow"
         env:
