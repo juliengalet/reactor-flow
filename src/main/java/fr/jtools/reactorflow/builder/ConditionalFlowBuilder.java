@@ -8,11 +8,27 @@ import fr.jtools.reactorflow.report.FlowContext;
 import java.util.Objects;
 import java.util.function.Predicate;
 
+/**
+ * Class used to build a {@link ConditionalFlow}.
+ */
 public final class ConditionalFlowBuilder {
+  /**
+   * Get a default builder for {@link FlowContext} context.
+   *
+   * @param <T> Context type
+   * @return {@link ConditionalFlowBuilder.Named} builder step
+   */
   public static <T extends FlowContext> ConditionalFlowBuilder.Named<T> defaultBuilder() {
     return new ConditionalFlowBuilder.BuildSteps<>();
   }
 
+  /**
+   * Get a builder for a specified context class.
+   *
+   * @param contextClass Context class that will be inferred to {@link T}
+   * @param <T>          Context type
+   * @return {@link ConditionalFlowBuilder.Named} builder step
+   */
   public static <T extends FlowContext> ConditionalFlowBuilder.Named<T> builderForContextOfType(Class<T> contextClass) {
     return new ConditionalFlowBuilder.BuildSteps<>();
   }
@@ -22,10 +38,21 @@ public final class ConditionalFlowBuilder {
       ConditionalFlowBuilder.CaseTrue<T>,
       ConditionalFlowBuilder.CaseFalse<T>,
       ConditionalFlowBuilder.Build<T> {
+    /**
+     * The name.
+     */
     private String name;
+    /**
+     * The {@link Flow} to execute if condition is true.
+     */
     private Flow<T> flowCaseTrue;
+    /**
+     * The {@link Flow} to execute if condition is false.
+     */
     private Flow<T> flowCaseFalse;
-
+    /**
+     * The condition.
+     */
     private Predicate<T> condition;
 
     private BuildSteps() {
@@ -69,22 +96,51 @@ public final class ConditionalFlowBuilder {
   }
 
   public interface CaseTrue<T extends FlowContext> {
+    /**
+     * The {@link Flow} executed if condition is true.
+     *
+     * @param flow The flow
+     * @return {@link ConditionalFlowBuilder.CaseFalse} builder step
+     */
     ConditionalFlowBuilder.CaseFalse<T> caseTrue(Flow<T> flow);
   }
 
   public interface CaseFalse<T extends FlowContext> {
+    /**
+     * The {@link Flow} executed if condition is false.
+     *
+     * @param flow The flow
+     * @return {@link ConditionalFlowBuilder.Build} builder step
+     */
     ConditionalFlowBuilder.Build<T> caseFalse(Flow<T> flow);
   }
 
   public interface Build<T extends FlowContext> {
+    /**
+     * Build the {@link ConditionalFlow}.
+     *
+     * @return Built {@link ConditionalFlow}
+     */
     ConditionalFlow<T> build();
   }
 
   public interface Named<T extends FlowContext> {
+    /**
+     * Define flow name.
+     *
+     * @param name The name
+     * @return {@link ConditionalFlowBuilder.Condition} builder step
+     */
     ConditionalFlowBuilder.Condition<T> named(String name);
   }
 
   public interface Condition<T extends FlowContext> {
+    /**
+     * Define flow condition
+     *
+     * @param condition The condition
+     * @return {@link ConditionalFlowBuilder.CaseTrue} builder step
+     */
     ConditionalFlowBuilder.CaseTrue<T> condition(Predicate<T> condition);
   }
 }
