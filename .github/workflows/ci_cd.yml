@@ -39,7 +39,7 @@ jobs:
     name: Deploy
     needs:
       - build
-    if: ${{ contains(github.ref, 'refs/tags') && contains(github.ref, 'refs/heads/develop') }}
+    if: ${{ contains(github.ref, 'refs/tags') || contains(github.ref, 'refs/heads/develop') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
