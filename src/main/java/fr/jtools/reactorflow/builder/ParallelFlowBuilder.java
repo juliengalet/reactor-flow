@@ -54,7 +54,7 @@ public final class ParallelFlowBuilder {
    * Get a builder for a specified metadata class.
    *
    * @param metadataClass Context class that will be inferred to {@link M}
-   * @param <M>           Context type
+   * @param <T>           Context type
    * @param <M>           Metadata type
    * @return {@link ParallelFlowBuilder.Named} builder step
    */
