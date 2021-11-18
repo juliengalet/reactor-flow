@@ -12,6 +12,7 @@ import fr.jtools.reactorflow.report.Report;
 import fr.jtools.reactorflow.report.Status;
 import fr.jtools.reactorflow.testutils.CustomContext;
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -118,7 +119,7 @@ final class StepFlowTest {
   }
 
   @Test
-  final void givenSuccessClassExecution_stepFlow_shouldSuccess() {
+  final void givenSuccessClassicExecution_stepFlow_shouldSuccess() {
     StepFlow<FlowContext, Object> stepFlow = StepFlowBuilder
         .defaultBuilder()
         .named("Test")
@@ -131,6 +132,104 @@ final class StepFlowTest {
           assertThat(globalReport.getStatus()).isEqualTo(Status.SUCCESS);
           assertThat(globalReport.getContext().get("Test")).isEqualTo("Test");
           assertThat(globalReport.getName()).isEqualTo("Test");
+          assertThat(globalReport.getAllRecoveredErrors()).isEmpty();
+          assertThat(globalReport.getAllErrors()).isEmpty();
+          assertThat(globalReport.getAllWarnings()).isEmpty();
+        })
+        .verifyComplete();
+  }
+
+
+  @Test
+  final void givenSuccessWithMonoContext_stepFlow_shouldSuccess() {
+    StepFlow<FlowContext, Object> stepFlow = StepFlowBuilder
+        .defaultBuilder()
+        .named("Test")
+        .execution(new TestWork())
+        .build();
+
+    StepVerifier
+        .create(stepFlow.run(Mono.just(FlowContext.create())))
+        .assertNext(globalReport -> {
+          assertThat(globalReport.getStatus()).isEqualTo(Status.SUCCESS);
+          assertThat(globalReport.getContext().get("Test")).isEqualTo("Test");
+          assertThat(globalReport.getName()).isEqualTo("Test");
+          assertThat(globalReport.getAllRecoveredErrors()).isEmpty();
+          assertThat(globalReport.getAllErrors()).isEmpty();
+          assertThat(globalReport.getAllWarnings()).isEmpty();
+        })
+        .verifyComplete();
+  }
+
+  @Test
+  final void givenSuccessWithSequentialFluxContext_stepFlow_shouldSuccess() {
+    StepFlow<FlowContext, Object> stepFlow = StepFlowBuilder
+        .defaultBuilder()
+        .named("Test")
+        .execution(new TestWork())
+        .build();
+
+    StepVerifier
+        .create(stepFlow
+            .runSequential(Flux.just(
+                FlowContext.createFrom(Map.of("Init1", "Init1")),
+                FlowContext.createFrom(Map.of("Init2", "Init2"))
+            ))
+        )
+        .assertNext(globalReport -> {
+          assertThat(globalReport.getStatus()).isEqualTo(Status.SUCCESS);
+          assertThat(globalReport.getContext().get("Test")).isEqualTo("Test");
+          assertThat(globalReport.getContext().get("Init2")).isNull();
+          assertThat(globalReport.getContext().get("Init1")).isEqualTo("Init1");
+          assertThat(globalReport.getName()).startsWith("Test");
+          assertThat(globalReport.getAllRecoveredErrors()).isEmpty();
+          assertThat(globalReport.getAllErrors()).isEmpty();
+          assertThat(globalReport.getAllWarnings()).isEmpty();
+        })
+        .assertNext(globalReport -> {
+          assertThat(globalReport.getStatus()).isEqualTo(Status.SUCCESS);
+          assertThat(globalReport.getContext().get("Test")).isEqualTo("Test");
+          assertThat(globalReport.getContext().get("Init1")).isNull();
+          assertThat(globalReport.getContext().get("Init2")).isEqualTo("Init2");
+          assertThat(globalReport.getName()).startsWith("Test");
+          assertThat(globalReport.getAllRecoveredErrors()).isEmpty();
+          assertThat(globalReport.getAllErrors()).isEmpty();
+          assertThat(globalReport.getAllWarnings()).isEmpty();
+        })
+        .verifyComplete();
+  }
+
+  @Test
+  final void givenSuccessWithFluxContext_stepFlow_shouldSuccess() {
+    StepFlow<FlowContext, Object> stepFlow = StepFlowBuilder
+        .defaultBuilder()
+        .named("Test")
+        .execution(new TestWork())
+        .build();
+
+    StepVerifier
+        .create(stepFlow
+            .run(Flux.just(
+                FlowContext.createFrom(Map.of("Init1", "Init1")),
+                FlowContext.createFrom(Map.of("Init2", "Init2"))
+            ))
+        )
+        .assertNext(globalReport -> {
+          assertThat(globalReport.getStatus()).isEqualTo(Status.SUCCESS);
+          assertThat(globalReport.getContext().get("Test")).isEqualTo("Test");
+          assertThat(globalReport.getContext().get("Init2")).isNull();
+          assertThat(globalReport.getContext().get("Init1")).isEqualTo("Init1");
+          assertThat(globalReport.getName()).startsWith("Test");
+          assertThat(globalReport.getAllRecoveredErrors()).isEmpty();
+          assertThat(globalReport.getAllErrors()).isEmpty();
+          assertThat(globalReport.getAllWarnings()).isEmpty();
+        })
+        .assertNext(globalReport -> {
+          assertThat(globalReport.getStatus()).isEqualTo(Status.SUCCESS);
+          assertThat(globalReport.getContext().get("Test")).isEqualTo("Test");
+          assertThat(globalReport.getContext().get("Init1")).isNull();
+          assertThat(globalReport.getContext().get("Init2")).isEqualTo("Init2");
+          assertThat(globalReport.getName()).startsWith("Test");
           assertThat(globalReport.getAllRecoveredErrors()).isEmpty();
           assertThat(globalReport.getAllErrors()).isEmpty();
           assertThat(globalReport.getAllWarnings()).isEmpty();
