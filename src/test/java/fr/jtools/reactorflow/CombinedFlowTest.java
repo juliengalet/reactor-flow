@@ -72,9 +72,7 @@ final class CombinedFlowTest {
 
     StepVerifier
         .create(complexCase.run(FlowContext.create()))
-        .assertNext(assertAndLog(globalReport -> {
-          assertThat(globalReport.getStatus()).isEqualTo(Status.WARNING);
-        }))
+        .assertNext(assertAndLog(globalReport -> assertThat(globalReport.getStatus()).isEqualTo(Status.WARNING)))
         .verifyComplete();
   }
 }

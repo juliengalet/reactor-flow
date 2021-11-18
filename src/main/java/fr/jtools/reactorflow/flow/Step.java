@@ -9,6 +9,6 @@ import fr.jtools.reactorflow.report.FlowContext;
  *
  * @param <T> Context type
  */
-interface Step<T extends FlowContext> extends StepWithMetadata<T, Object> {
+public interface Step<T extends FlowContext> extends StepWithMetadata<T, Object> {
 
 }

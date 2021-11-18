@@ -9,7 +9,9 @@ import fr.jtools.reactorflow.report.Report;
 import fr.jtools.reactorflow.report.Status;
 import fr.jtools.reactorflow.utils.ConsoleStyle;
 import fr.jtools.reactorflow.utils.PrettyPrint;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.concurrent.Queues;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -255,6 +257,61 @@ public abstract class Flow<T extends FlowContext> implements PrettyPrint {
   public final Mono<GlobalReport<T>> run(T initialContext) {
     return this.execute(initialContext, Metadata.empty())
         .map(report -> GlobalReport.create(report.getContext(), this));
+  }
+
+  /**
+   * Run the {@link Flow} and all its children with an initial {@link T} context.
+   *
+   * @param initialContextMono The initial context
+   * @return A {@link Mono} containing the resulting {@link GlobalReport}
+   */
+  public final Mono<GlobalReport<T>> run(Mono<T> initialContextMono) {
+    return initialContextMono
+        .flatMap(initialContext -> this.execute(initialContext, Metadata.empty()))
+        .map(report -> GlobalReport.create(report.getContext(), this));
+  }
+
+  /**
+   * Run a {@link Flow} and all its children with an initial {@link T} context, from a {@link Flux}.
+   *
+   * @param initialContextFlux The initial contexts
+   * @return A {@link Flux} containing the resulting {@link GlobalReport}
+   */
+  public final Flux<GlobalReport<T>> run(Flux<T> initialContextFlux) {
+    return this.run(initialContextFlux, Queues.SMALL_BUFFER_SIZE);
+  }
+
+  /**
+   * Run a {@link Flow} and all its children with an initial {@link T} context, from a {@link Flux}, sequentially.
+   *
+   * @param initialContextFlux The initial contexts
+   * @return A {@link Flux} containing the resulting {@link GlobalReport}
+   */
+  public final Flux<GlobalReport<T>> runSequential(Flux<T> initialContextFlux) {
+    return this.run(initialContextFlux, 1);
+  }
+
+  /**
+   * Run a {@link Flow} and all its children with an initial {@link T} context, from a {@link Flux},
+   * with a specified concurrency.
+   * Warning: if the {@link Flux} provided emits an error, it will break the reactor chain.
+   *
+   * @param initialContextFlux The initial contexts
+   * @param concurrency        The concurrency
+   * @return A {@link Flux} containing the resulting {@link GlobalReport}
+   */
+  public final Flux<GlobalReport<T>> run(Flux<T> initialContextFlux, int concurrency) {
+    return initialContextFlux
+        .flatMap(
+            initialContext -> {
+              Flow<T> clonedFlow = this.cloneFlow(String.format("%s (%s)", this.getName(), initialContext.hashCode()));
+
+              return clonedFlow
+                  .execute(initialContext, Metadata.empty())
+                  .map(report -> GlobalReport.create(report.getContext(), clonedFlow));
+            },
+            concurrency
+        );
   }
 
   /**
