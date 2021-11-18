@@ -1,0 +1,60 @@
+name: CI/CD
+
+on:
+  push:
+    tags:
+      - "**"
+    branches-ignore:
+      - master
+
+concurrency: ci_cd
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Setup Java
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+          distribution: 'zulu'
+          cache: 'maven'
+
+      - name: Analyze
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+
+      - name: Build
+        env:
+          MAVEN_ARGS: -s ${{ github.workspace }}/settings.xml --batch-mode --errors --fail-at-end --show-version
+        run: mvn $MAVEN_ARGS --update-snapshots install
+
+  deploy:
+    name: Deploy
+    needs:
+      - build
+    if: ${{ contains(github.ref, 'refs/tags') && contains(github.ref, 'refs/heads/develop') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Setup Java
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+          distribution: 'zulu'
+          cache: 'maven'
+
+      - name: Deploy jars
+        env:
+          MAVEN_ARGS: -s ${{ github.workspace }}/settings.xml --batch-mode --errors --fail-at-end --show-version
+          USERNAME: ${{github.actor}}
+          PASSWORD: ${{github.token}}
+        run: mvn $MAVEN_ARGS -DskipTests deploy
