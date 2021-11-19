@@ -33,7 +33,7 @@ jobs:
 
       - name: Dry run release
         env:
-          MAVEN_ARGS: -s ${{ github.workspace }}/settings.xml --batch-mode --errors --fail-at-end --show-version
+          MAVEN_ARGS: --batch-mode --errors --fail-at-end --show-version
           USERNAME: ${{github.actor}}
           PASSWORD: ${{github.token}}
         run: |
@@ -104,7 +104,7 @@ jobs:
       - name: Release
         id: release
         env:
-          MAVEN_ARGS: -s ${{ github.workspace }}/settings.xml --batch-mode --errors --fail-at-end --show-version
+          MAVEN_ARGS: --batch-mode --errors --fail-at-end --show-version
           USERNAME: ${{github.actor}}
           PASSWORD: ${{github.token}}
         run: |

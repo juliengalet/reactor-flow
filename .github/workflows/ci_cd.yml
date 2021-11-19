@@ -7,8 +7,6 @@ on:
     branches-ignore:
       - master
 
-concurrency: ci_cd
-
 jobs:
   build:
     name: Build
@@ -16,6 +14,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
       - name: Setup Java
         uses: actions/setup-java@v2
@@ -28,15 +28,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+        run: mvn $MAVEN_ARGS -DskipTests verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
 
       - name: Build
         env:
-          MAVEN_ARGS: -s ${{ github.workspace }}/settings.xml --batch-mode --errors --fail-at-end --show-version
+          MAVEN_ARGS: --batch-mode --errors --fail-at-end --show-version
         run: mvn $MAVEN_ARGS --update-snapshots install
 
-  deploy:
-    name: Deploy
+  deploy-github-package:
+    name: Deploy GitHub Package
     needs:
       - build
     if: ${{ contains(github.ref, 'refs/tags') || contains(github.ref, 'refs/heads/develop') }}
@@ -51,10 +51,43 @@ jobs:
           java-version: '11'
           distribution: 'zulu'
           cache: 'maven'
+          server-id: github
+          server-username: USERNAME
+          server-password: PASSWORD
 
       - name: Deploy jars
         env:
-          MAVEN_ARGS: -s ${{ github.workspace }}/settings.xml --batch-mode --errors --fail-at-end --show-version
-          USERNAME: ${{github.actor}}
-          PASSWORD: ${{github.token}}
+          MAVEN_ARGS: --batch-mode --errors --fail-at-end --show-version
+          USERNAME: ${{ github.actor }}
+          PASSWORD: ${{ github.token }}
         run: mvn $MAVEN_ARGS -DskipTests deploy
+
+  deploy-maven-central:
+    name: Deploy Maven Central
+    needs:
+      - build
+    if: ${{ contains(github.ref, 'refs/tags') || contains(github.ref, 'refs/heads/develop') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Setup Java
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+          distribution: 'zulu'
+          cache: 'maven'
+          server-id: maven-central
+          server-username: USERNAME
+          server-password: PASSWORD
+          gpg-private-key: ${{ secrets.MAVEN_CENTRAL_GPG_PRIVATE_KEY }}
+          gpg-passphrase: MAVEN_CENTRAL_GPG_PASSPHRASE
+
+      - name: Deploy jars
+        env:
+          MAVEN_ARGS: --batch-mode --errors --fail-at-end --show-version
+          MAVEN_CENTRAL_GPG_PASSPHRASE: ${{ secrets.MAVEN_CENTRAL_GPG_PASSPHRASE }}
+          USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+        run: mvn $MAVEN_ARGS -DskipTests -DmavenCentralDeploy deploy

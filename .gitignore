@@ -103,3 +103,5 @@ reactor-flow.iml
 reactor-flow.ipr
 reactor-flow.iws
 .env
+
+*.gpg
