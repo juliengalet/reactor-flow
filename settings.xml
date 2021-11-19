@@ -1,12 +1,7 @@
 <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0">
     <servers>
         <server>
-            <id>github-snapshot</id>
-            <username>${env.USERNAME}</username>
-            <password>${env.PASSWORD}</password>
-        </server>
-        <server>
-            <id>github-release</id>
+            <id>github</id>
             <username>${env.USERNAME}</username>
             <password>${env.PASSWORD}</password>
         </server>
