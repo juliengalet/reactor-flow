@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>fr.jtools</groupId>
+    <groupId>io.github.juliengalet</groupId>
     <artifactId>reactor-flow</artifactId>
     <version>1.1.1-SNAPSHOT</version>
     <description>
@@ -16,21 +17,6 @@
         <developerConnection>scm:git:https://github.com/juliengalet/reactor-flow</developerConnection>
         <tag>HEAD</tag>
     </scm>
-
-    <distributionManagement>
-        <snapshotRepository>
-            <id>github-snapshot</id>
-            <name>GitHub snapshot</name>
-            <url>https://maven.pkg.github.com/juliengalet/reactor-flow</url>
-            <uniqueVersion>true</uniqueVersion>
-        </snapshotRepository>
-        <repository>
-            <id>github-release</id>
-            <name>GitHub release</name>
-            <url>https://maven.pkg.github.com/juliengalet/reactor-flow</url>
-            <uniqueVersion>false</uniqueVersion>
-        </repository>
-    </distributionManagement>
 
     <licenses>
         <license>
@@ -57,9 +43,9 @@
         <maven.compiler.target>11</maven.compiler.target>
         <java.version>11</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <reactor.version>3.4.4</reactor.version>
-        <junit.version>5.7.0</junit.version>
-        <assertj.version>3.19.0</assertj.version>
+        <reactor.version>3.4.12</reactor.version>
+        <junit.version>5.8.1</junit.version>
+        <assertj.version>3.21.0</assertj.version>
         <jacoco.version>0.8.5</jacoco.version>
         <maven-surefire-plugin.version>2.22.1</maven-surefire-plugin.version>
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
@@ -69,10 +55,12 @@
         <maven-site-plugin.version>3.7.1</maven-site-plugin.version>
         <maven-project-info-reports-plugin.version>3.1.1</maven-project-info-reports-plugin.version>
         <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
+        <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
         <sonar.projectKey>juliengalet_reactor-flow</sonar.projectKey>
         <sonar.organization>juliengalet</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-        <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+        <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml
+        </sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 
     <dependencies>
@@ -80,6 +68,7 @@
             <groupId>io.projectreactor</groupId>
             <artifactId>reactor-core</artifactId>
             <version>${reactor.version}</version>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -90,7 +79,7 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
-            <version>5.7.0</version>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -160,7 +149,7 @@
                     <execution>
                         <id>attach-sources</id>
                         <goals>
-                            <goal>jar</goal>
+                            <goal>jar-no-fork</goal>
                         </goals>
                     </execution>
                 </executions>
@@ -214,4 +203,77 @@
             </plugin>
         </plugins>
     </reporting>
+
+    <profiles>
+        <profile>
+            <id>github-package-deploy</id>
+            <activation>
+                <property>
+                    <name>!mavenCentralDeploy</name>
+                </property>
+            </activation>
+            <distributionManagement>
+                <snapshotRepository>
+                    <id>github</id>
+                    <name>GitHub snapshot</name>
+                    <url>https://maven.pkg.github.com/juliengalet/reactor-flow</url>
+                    <uniqueVersion>true</uniqueVersion>
+                </snapshotRepository>
+                <repository>
+                    <id>github</id>
+                    <name>GitHub release</name>
+                    <url>https://maven.pkg.github.com/juliengalet/reactor-flow</url>
+                    <uniqueVersion>false</uniqueVersion>
+                </repository>
+            </distributionManagement>
+        </profile>
+
+        <profile>
+            <id>maven-central-deploy</id>
+            <activation>
+                <property>
+                    <name>mavenCentralDeploy</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <distributionManagement>
+                <snapshotRepository>
+                    <id>maven-central</id>
+                    <name>Maven central snapshots</name>
+                    <url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
+                    <uniqueVersion>true</uniqueVersion>
+                </snapshotRepository>
+                <repository>
+                    <id>maven-central</id>
+                    <name>Maven central releases</name>
+                    <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+                    <uniqueVersion>false</uniqueVersion>
+                </repository>
+            </distributionManagement>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>${maven-gpg-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                                <configuration>
+                                    <gpgArguments>
+                                        <arg>--pinentry-mode</arg>
+                                        <arg>loopback</arg>
+                                    </gpgArguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
