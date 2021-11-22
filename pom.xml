@@ -4,7 +4,7 @@
 
     <groupId>io.github.juliengalet</groupId>
     <artifactId>reactor-flow</artifactId>
-    <version>1.1.2-SNAPSHOT</version>
+    <version>1.1.2</version>
     <name>Reactor flow</name>
     <description>
         A library to execute flows with reactor. Inspired by https://github.com/j-easy/easy-flows project.
@@ -15,7 +15,7 @@
         <url>git@github.com:juliengalet/reactor-flow.git</url>
         <connection>scm:git:https://github.com/juliengalet/reactor-flow</connection>
         <developerConnection>scm:git:https://github.com/juliengalet/reactor-flow</developerConnection>
-        <tag>HEAD</tag>
+        <tag>v1.1.2</tag>
     </scm>
 
     <licenses>
