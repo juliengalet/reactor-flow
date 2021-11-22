@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.github.juliengalet</groupId>
     <artifactId>reactor-flow</artifactId>
-    <version>1.1.1-SNAPSHOT</version>
+    <version>1.1.1</version>
     <description>
         A library to execute flows with reactor. Inspired by https://github.com/j-easy/easy-flows project.
     </description>
@@ -15,7 +14,7 @@
         <url>git@github.com:juliengalet/reactor-flow.git</url>
         <connection>scm:git:https://github.com/juliengalet/reactor-flow</connection>
         <developerConnection>scm:git:https://github.com/juliengalet/reactor-flow</developerConnection>
-        <tag>HEAD</tag>
+        <tag>v1.1.1</tag>
     </scm>
 
     <licenses>
