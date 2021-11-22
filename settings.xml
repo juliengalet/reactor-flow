@@ -5,5 +5,12 @@
             <username>${env.USERNAME}</username>
             <password>${env.PASSWORD}</password>
         </server>
+        <server>
+            <id>maven-central</id>
+            <username>${env.USERNAME}</username>
+            <password>${env.PASSWORD}</password>
+            <privateKey>${env.MAVEN_CENTRAL_GPG_PRIVATE_KEY}</privateKey>
+            <passphrase>${env.MAVEN_CENTRAL_GPG_PASSPHRASE}</passphrase>
+        </server>
     </servers>
 </settings>

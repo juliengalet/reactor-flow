@@ -1,0 +1,195 @@
+package io.github.juliengalet.reactorflow.flow;
+
+import io.github.juliengalet.reactorflow.exception.FlowException;
+import io.github.juliengalet.reactorflow.exception.RecoverableFlowException;
+import io.github.juliengalet.reactorflow.report.FlowContext;
+import io.github.juliengalet.reactorflow.report.Metadata;
+import io.github.juliengalet.reactorflow.report.Report;
+import reactor.core.publisher.Mono;
+
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+/**
+ * Class managing a retryable {@link Flow}.
+ *
+ * @param <T> Context type
+ */
+public final class RetryableFlow<T extends FlowContext> extends Flow<T> {
+  /**
+   * The {@link Flow} that will be retried.
+   */
+  private final Flow<T> flow;
+  /**
+   * The name.
+   */
+  private final String name;
+  /**
+   * The {@link RecoverableFlowException} type that can be retried.
+   */
+  private RecoverableFlowException retryOn = RecoverableFlowException.TECHNICAL;
+  /**
+   * The maximum number of times the {@link RetryableFlow} will be retried.
+   */
+  private Integer retryTimes = 1;
+  /**
+   * The delay to wait between each retry, in milliseconds.
+   */
+  private Integer delay = 100;
+
+  /**
+   * A {@link List} used to store copied of {@link RetryableFlow#flow}, that will be retried one by one.
+   */
+  private final List<Flow<T>> flowsToRetry;
+
+  /**
+   * Static method used to create a {@link RetryableFlow}.
+   *
+   * @param name       {@link RetryableFlow#name}
+   * @param flow       {@link RetryableFlow#flow}
+   * @param retryTimes {@link RetryableFlow#retryTimes}
+   * @param delay      {@link RetryableFlow#delay}
+   * @param retryOn    {@link RetryableFlow#retryOn}
+   * @param <T>        Context type
+   * @return A {@link RetryableFlow}
+   */
+  public static <T extends FlowContext> RetryableFlow<T> create(String name, Flow<T> flow, Integer retryTimes, Integer delay, RecoverableFlowException retryOn) {
+    return new RetryableFlow<>(name, flow, retryTimes, delay, retryOn);
+  }
+
+  private RetryableFlow(String name, Flow<T> flow, Integer retryTimes, Integer delay, RecoverableFlowException retryOn) {
+    this.name = name;
+    this.flow = flow;
+    if (Objects.nonNull(retryTimes)) {
+      this.retryTimes = retryTimes;
+    }
+    if (Objects.nonNull(delay)) {
+      this.delay = delay;
+    }
+    if (Objects.nonNull(retryOn)) {
+      this.retryOn = retryOn;
+    }
+
+    ArrayList<Flow<T>> toRetry = new ArrayList<>();
+    for (int c = 0; c < this.retryTimes; c++) {
+      toRetry.add(this.flow.cloneFlow(String.format("%s (Retry %d)", this.flow.getName(), c + 1)));
+    }
+    this.flowsToRetry = toRetry;
+  }
+
+  /**
+   * Get the {@link RetryableFlow} name.
+   *
+   * @return The name
+   */
+  @Override
+  public final String getName() {
+    return name;
+  }
+
+  /**
+   * {@link RetryableFlow#flow} execution.
+   * It executes {@link RetryableFlow#flow}, and if it fails with an exception valid for {@link RetryableFlow#retryOn},
+   * it executes the next {@link RetryableFlow#flowsToRetry}, after a delay of {@link RetryableFlow#delay} milliseconds.
+   *
+   * @param context  The previous {@link T} context
+   * @param metadata A {@link Metadata} object
+   * @return A {@link Report}
+   */
+  @Override
+  protected final Mono<Report<T>> execution(T context, Metadata<?> metadata) {
+    return this.tryExecution(context, new AtomicInteger(0), this.flow, metadata);
+  }
+
+  /**
+   * Clone the {@link RetryableFlow} with a new name.
+   *
+   * @param newName {@link RetryableFlow} new name
+   * @return Cloned {@link RetryableFlow}
+   */
+  @Override
+  public final RetryableFlow<T> cloneFlow(String newName) {
+    return RetryableFlow.create(newName, this.flow.cloneFlow(), this.retryTimes, this.delay, this.retryOn);
+  }
+
+  /**
+   * Clone the {@link RetryableFlow}.
+   *
+   * @return Cloned {@link RetryableFlow}
+   */
+  @Override
+  public final RetryableFlow<T> cloneFlow() {
+    return this.cloneFlow(this.getName());
+  }
+
+  /**
+   * Get {@link RetryableFlow} children, aka :
+   * <ul>
+   *   <li>{@link RetryableFlow#flow}</li>
+   *   <li>{@link RetryableFlow#flowsToRetry}</li>
+   * </ul>
+   *
+   * @return A {@link List} containing children {@link Flow}s
+   */
+  @Override
+  protected final List<Flow<T>> getChildren() {
+    return Stream.concat(Stream.of(flow), this.flowsToRetry.stream()).collect(Collectors.toList());
+  }
+
+  /**
+   * Has error policy : a {@link RetryableFlow} is in error if none of its children succeeded.
+   *
+   * @return A {@link Boolean}
+   */
+  @Override
+  protected boolean flowOrChildrenHasError() {
+    return !FlowStatusPolicy.flowAndOneChildSucceeded().test(this);
+  }
+
+  /**
+   * Try the execution of a {@link Flow} by doing those steps :
+   * <ul>
+   *   <li>Try to execute it</li>
+   *   <li>analyses if it is retryable (if the errors generated by it are valid for {@link RetryableFlow#retryOn})</li>
+   *   <li>if it is retryable, checks if there is a next {@link Flow} to retry in {@link RetryableFlow#flowsToRetry}</li>
+   *   <li>if there is, clean the errors (the will be added to tried {@link Flow} recovered errors)</li>
+   *   <li>wait {@link RetryableFlow#delay}</li>
+   *   <li>call itself recursively to try the execution of the next {@link Flow}</li>
+   * </ul>
+   *
+   * @param context  The previous {@link T} context
+   * @param counter  A counter that stored the number of retried {@link Flow}
+   * @param flow     The {@link Flow} to try
+   * @param metadata A {@link Metadata} object
+   * @return A {@link Report}
+   */
+  private Mono<Report<T>> tryExecution(T context, AtomicInteger counter, Flow<T> flow, Metadata<?> metadata) {
+    return flow.execute(context, Metadata.from(metadata))
+        .flatMap(report -> {
+          int count = counter.getAndIncrement();
+          List<FlowException> exceptionsForFlow = flow.getErrorsForFlowAndChildren();
+          if (
+              !exceptionsForFlow.isEmpty() &&
+                  count < this.retryTimes &&
+                  exceptionsForFlow.stream().allMatch(exception -> exception.isRecoverable(this.retryOn))
+          ) {
+            flow.cleanErrorsForFlowAndChildren();
+            return Mono
+                .delay(Duration.ofMillis(delay))
+                .flatMap(unused -> this.tryExecution(
+                    report.getContext(),
+                    counter,
+                    this.flowsToRetry.get(count),
+                    Metadata.from(metadata)
+                ));
+          }
+
+          return Mono.just(report);
+        });
+  }
+}

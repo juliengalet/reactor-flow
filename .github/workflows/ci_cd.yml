@@ -33,11 +33,11 @@ jobs:
           MAVEN_ARGS: -s ${{ github.workspace }}/settings.xml --batch-mode --errors --fail-at-end --show-version
         run: mvn $MAVEN_ARGS --update-snapshots install
 
-  deploy:
-    name: Deploy
+  deploy-github-package:
+    name: Deploy GitHub Package
     needs:
       - build
-    if: ${{ contains(github.ref, 'refs/tags') || contains(github.ref, 'refs/heads/develop') }}
+#    if: ${{ contains(github.ref, 'refs/tags') || contains(github.ref, 'refs/heads/develop') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -53,6 +53,37 @@ jobs:
       - name: Deploy jars
         env:
           MAVEN_ARGS: -s ${{ github.workspace }}/settings.xml --batch-mode --errors --fail-at-end --show-version
-          USERNAME: ${{github.actor}}
-          PASSWORD: ${{github.token}}
+          USERNAME: ${{ github.actor }}
+          PASSWORD: ${{ github.token }}
         run: mvn $MAVEN_ARGS -DskipTests deploy
+
+  deploy-maven-central:
+    name: Deploy Maven Central
+    needs:
+      - build
+#    if: ${{ contains(github.ref, 'refs/tags') || contains(github.ref, 'refs/heads/develop') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Setup Java
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+          distribution: 'zulu'
+          cache: 'maven'
+          server-id: maven-central
+          server-username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          server-password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          gpg-private-key: ${{ secrets.MAVEN_CENTRAL_GPG_PRIVATE_KEY }}
+          gpg-passphrase: ${{ secrets.MAVEN_CENTRAL_GPG_PASSPHRASE }}
+
+      - name: Deploy jars
+        env:
+          MAVEN_ARGS: -s ${{ github.workspace }}/settings.xml --batch-mode --errors --fail-at-end --show-version
+          MAVEN_CENTRAL_GPG_PASSPHRASE: ${{ secrets.MAVEN_CENTRAL_GPG_PASSPHRASE }}
+          MAVEN_CENTRAL_GPG_PRIVATE_KEY: ${{ secrets.MAVEN_CENTRAL_GPG_PRIVATE_KEY }}
+          USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+        run: mvn $MAVEN_ARGS -DskipTests -DmavenCentralDeploy deploy

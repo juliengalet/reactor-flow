@@ -57,7 +57,7 @@ So, you can use this token that only allows to read my GitHub Packages `ghp_2Cl7
 You should add the following in your `pom.xml` dependencies
 ```xml
 <dependency>
-  <groupId>fr.jtools</groupId>
+  <groupId>io.github.juliengalet</groupId>
   <artifactId>reactor-flow</artifactId>
   <version>${reactor-flow.version}</version>
 </dependency>
@@ -72,7 +72,7 @@ You should add the following in your `pom.xml` dependencies
 
 You should add the following in your `build.gradle` dependencies (do not forget to add mavenCentral() as repository)
 ```text
-compile 'fr.jtools:reactor-flow:${reactor-flow.version}'
+compile 'io.github.juliengalet:reactor-flow:${reactor-flow.version}'
 compile 'io.projectreactor:reactor-core:${reactor.version}'
 ```
 
@@ -232,12 +232,12 @@ and `toString()` to log a non colorized version of the result.
 
 The context is used in a workflow to share data between each step.
 
-You can either use the provided [FlowContext](./src/main/java/fr/jtools/reactorflow/report/FlowContext.java) class, 
+You can either use the provided [FlowContext](src/main/java/io/github/juliengalet/reactorflow/report/FlowContext.java) class, 
 or extend it with a custom implementation, if you don't want to directly deal with the **Map<String, Object>** used inside it.
 
 ### Provided FlowContext usage
 
-There are two ways to create a provided [FlowContext](./src/main/java/fr/jtools/reactorflow/report/FlowContext.java)
+There are two ways to create a provided [FlowContext](src/main/java/io/github/juliengalet/reactorflow/report/FlowContext.java)
 - Create an empty one
   ```java
   FlowContext.create();
@@ -249,7 +249,7 @@ There are two ways to create a provided [FlowContext](./src/main/java/fr/jtools/
 
 ### Custom FlowContext usage
 
-If you don't want to directly access the **Map<String, Object>**, you can extend [FlowContext](./src/main/java/fr/jtools/reactorflow/report/FlowContext.java) class,
+If you don't want to directly access the **Map<String, Object>**, you can extend [FlowContext](src/main/java/io/github/juliengalet/reactorflow/report/FlowContext.java) class,
 and add methods to wrap access to the **Map<String, Object>**.
 
 This way, you can type safe access the **Map<String, Object>**.
@@ -290,9 +290,9 @@ Reports are used at two levels.
 
 ### StepFlow level
 
-The [StepFlow](./src/main/java/fr/jtools/reactorflow/flow/StepFlow.java) level, using [Report](./src/main/java/fr/jtools/reactorflow/report/Report.java) class.
-A [StepFlow](./src/main/java/fr/jtools/reactorflow/flow/StepFlow.java) execution (see [Available flows](#available-flows) - [StepFlow](#stepflow) for more details), 
-should return a [Report](./src/main/java/fr/jtools/reactorflow/report/Report.java).
+The [StepFlow](src/main/java/io/github/juliengalet/reactorflow/flow/StepFlow.java) level, using [Report](src/main/java/io/github/juliengalet/reactorflow/report/Report.java) class.
+A [StepFlow](src/main/java/io/github/juliengalet/reactorflow/flow/StepFlow.java) execution (see [Available flows](#available-flows) - [StepFlow](#stepflow) for more details), 
+should return a [Report](src/main/java/io/github/juliengalet/reactorflow/report/Report.java).
 
 A report can be built using many static methods :
 - **Build a success report**
@@ -307,11 +307,11 @@ A report can be built using many static methods :
   Report.successWithWarning(flowContext, warnings)
   ```
   Variable warnings can be a single exception, or a list of exceptions.
-  All exceptions should extend [FlowException](./src/main/java/fr/jtools/reactorflow/exception/FlowException.java) class.
+  All exceptions should extend [FlowException](src/main/java/io/github/juliengalet/reactorflow/exception/FlowException.java) class.
   If you want to use the retry or recover on Functional/Technical exception, you should extend
-  [FlowTechnicalException](./src/main/java/fr/jtools/reactorflow/exception/FlowTechnicalException.java) or
-  [FlowFunctionalException](./src/main/java/fr/jtools/reactorflow/exception/FlowFunctionalException.java) classes, 
-  themselves extending [FlowException](./src/main/java/fr/jtools/reactorflow/exception/FlowException.java).
+  [FlowTechnicalException](src/main/java/io/github/juliengalet/reactorflow/exception/FlowTechnicalException.java) or
+  [FlowFunctionalException](src/main/java/io/github/juliengalet/reactorflow/exception/FlowFunctionalException.java) classes, 
+  themselves extending [FlowException](src/main/java/io/github/juliengalet/reactorflow/exception/FlowException.java).
 -  **Build an error report**
   ```java
   Report.error(flowContext, errors)
@@ -323,7 +323,7 @@ A report can be built using many static methods :
   ```
   Rules are same than for previous methods.
 
-**Note -** If your [StepFlow](./src/main/java/fr/jtools/reactorflow/flow/StepFlow.java) brutally throw, it will be caught as if you do this
+**Note -** If your [StepFlow](src/main/java/io/github/juliengalet/reactorflow/flow/StepFlow.java) brutally throw, it will be caught as if you do this
 ```java
 FlowException rawError = throwable instanceof FlowException ?
   (FlowException) throwable :
@@ -333,8 +333,8 @@ return Mono.just(Report.error(context, rawError));
 
 ### Global level
 
-The global level, using [GlobalReport](./src/main/java/fr/jtools/reactorflow/report/GlobalReport.java) class.
-A Flow, whatever flow type it is, will emit a [GlobalReport](./src/main/java/fr/jtools/reactorflow/report/GlobalReport.java) instance when ran.
+The global level, using [GlobalReport](src/main/java/io/github/juliengalet/reactorflow/report/GlobalReport.java) class.
+A Flow, whatever flow type it is, will emit a [GlobalReport](src/main/java/io/github/juliengalet/reactorflow/report/GlobalReport.java) instance when ran.
 
 This object contains all the data needed to analyse the result of a Flow.
 
@@ -342,7 +342,7 @@ This object contains all the data needed to analyse the result of a Flow.
   ```java
   globalReport.getContext();
   ```
-  It will return the [FlowContext](./src/main/java/fr/jtools/reactorflow/report/FlowContext.java) after all the steps are executed.
+  It will return the [FlowContext](src/main/java/io/github/juliengalet/reactorflow/report/FlowContext.java) after all the steps are executed.
   If you use a builder with a custom context type, it will be inferred.
   
 - **The status**
@@ -465,48 +465,85 @@ TODO
 
 ## StepFlow
 
-You can build a [StepFlow](./src/main/java/fr/jtools/reactorflow/flow/StepFlow.java)
-using [StepFlowBuilder](./src/main/java/fr/jtools/reactorflow/builder/StepFlowBuilder.java) class.
+You can build a [StepFlow](src/main/java/io/github/juliengalet/reactorflow/flow/StepFlow.java)
+using [StepFlowBuilder](src/main/java/io/github/juliengalet/reactorflow/builder/StepFlowBuilder.java) class.
+
+A [StepFlow](./src/main/java/fr/jtools/reactorflow/flow/StepFlow.java) is a unit of work.
+
+It is composed of a name and an execution.
+The execution is represented by the [Step](./src/main/java/fr/jtools/reactorflow/flow/Step.java) or [StepWithMetadata](./src/main/java/fr/jtools/reactorflow/flow/StepWithMetadata.java) interfaces.
+It contains
+
+Using the builder, the syntax is the following
+```java
+// Build a StepFlow using default FlowContext and Metadata<Object> types.
+StepFlowBuilder
+.defaultBuilder()
+.named("Step")
+.execution(((flowContext, metadata) -> Mono.just(Report.success(flowContext))))
+.build();
+
+// Build a StepFlow using a custom context and default Metadata<Object> types.
+StepFlowBuilder
+.builderForContextOfType(CustomContext.class)
+.named("Step")
+.execution(((customContext, metadata) -> Mono.just(Report.success(customContext))))
+.build();
+
+// Build a StepFlow using default FlowContext and a custom Metadata<String> types.
+StepFlowBuilder
+.builderForMetadataType(String.class)
+.named("Step")
+.execution(((flowContext, metadata) -> Mono.just(Report.success(flowContext))))
+.build();
+
+// Build a StepFlow using a custom context and a custom Metadata<String> types.
+StepFlowBuilder
+.builderForTypes(CustomContext.class, String.class)
+.named("Step")
+.execution(((customContext, metadata) -> Mono.just(Report.success(customContext))))
+.build();
+```
 
 ## SequentialFlow
 
-You can build a [SequentialFlow](./src/main/java/fr/jtools/reactorflow/flow/SequentialFlow.java)
-using [SequentialFlowBuilder](./src/main/java/fr/jtools/reactorflow/builder/SequentialFlowBuilder.java) class.
+You can build a [SequentialFlow](src/main/java/io/github/juliengalet/reactorflow/flow/SequentialFlow.java)
+using [SequentialFlowBuilder](src/main/java/io/github/juliengalet/reactorflow/builder/SequentialFlowBuilder.java) class.
 
 ## ConditionalFlow
 
-You can build a [ConditionalFlow](./src/main/java/fr/jtools/reactorflow/flow/ConditionalFlow.java)
-using [ConditionalFlowBuilder](./src/main/java/fr/jtools/reactorflow/builder/ConditionalFlowBuilder.java) class.
+You can build a [ConditionalFlow](src/main/java/io/github/juliengalet/reactorflow/flow/ConditionalFlow.java)
+using [ConditionalFlowBuilder](src/main/java/io/github/juliengalet/reactorflow/builder/ConditionalFlowBuilder.java) class.
 
 ## SwitchFlow
 
-You can build a [SwitchFlow](./src/main/java/fr/jtools/reactorflow/flow/SwitchFlow.java)
-using [SwitchFlowBuilder](./src/main/java/fr/jtools/reactorflow/builder/SwitchFlowBuilder.java) class.
+You can build a [SwitchFlow](src/main/java/io/github/juliengalet/reactorflow/flow/SwitchFlow.java)
+using [SwitchFlowBuilder](src/main/java/io/github/juliengalet/reactorflow/builder/SwitchFlowBuilder.java) class.
 
 ## ParallelFlow
 
-You can build a [ParallelFlow](./src/main/java/fr/jtools/reactorflow/flow/ParallelFlow.java)
-using [ParallelFlowBuilder](./src/main/java/fr/jtools/reactorflow/builder/ParallelFlowBuilder.java) class.
+You can build a [ParallelFlow](src/main/java/io/github/juliengalet/reactorflow/flow/ParallelFlow.java)
+using [ParallelFlowBuilder](src/main/java/io/github/juliengalet/reactorflow/builder/ParallelFlowBuilder.java) class.
 
 ## RecoverableFlow
 
-You can build a [RecoverableFlow](./src/main/java/fr/jtools/reactorflow/flow/RecoverableFlow.java)
-using [RecoverableFlowBuilder](./src/main/java/fr/jtools/reactorflow/builder/RecoverableFlowBuilder.java) class.
+You can build a [RecoverableFlow](src/main/java/io/github/juliengalet/reactorflow/flow/RecoverableFlow.java)
+using [RecoverableFlowBuilder](src/main/java/io/github/juliengalet/reactorflow/builder/RecoverableFlowBuilder.java) class.
 
 ## RetryableFlow
 
-You can build a [RetryableFlow](./src/main/java/fr/jtools/reactorflow/flow/RetryableFlow.java)
-using [RetryableFlowBuilder](./src/main/java/fr/jtools/reactorflow/builder/RetryableFlowBuilder.java) class.
+You can build a [RetryableFlow](src/main/java/io/github/juliengalet/reactorflow/flow/RetryableFlow.java)
+using [RetryableFlowBuilder](src/main/java/io/github/juliengalet/reactorflow/builder/RetryableFlowBuilder.java) class.
 
 ## NoOpFlow
 
-You can build a [NoOpFlow](./src/main/java/fr/jtools/reactorflow/flow/NoOpFlow.java) using `NoOpFlow.named(String name)`
+You can build a [NoOpFlow](src/main/java/io/github/juliengalet/reactorflow/flow/NoOpFlow.java) using `NoOpFlow.named(String name)`
 method.
 
 # Features to implement
 
 - [ ] Default parameters for builders
 - [ ] Use a more generic way to recover/retry flow on errors (actually it is mandatory to
-  extend [FlowFunctionalException](./src/main/java/fr/jtools/reactorflow/exception/FlowFunctionalException.java)
-  or [FlowTechnicalException](./src/main/java/fr/jtools/reactorflow/exception/FlowTechnicalException.java) in order to
+  extend [FlowFunctionalException](src/main/java/io/github/juliengalet/reactorflow/exception/FlowFunctionalException.java)
+  or [FlowTechnicalException](src/main/java/io/github/juliengalet/reactorflow/exception/FlowTechnicalException.java) in order to
   be able to retry on Functional or Technical errors)
