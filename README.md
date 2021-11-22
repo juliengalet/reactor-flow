@@ -49,9 +49,6 @@
 
 ## Add to your project
 
-**WARNING -** Actually, the jars are not deployed in Maven central repository, but there are in GitHub Packages.
-So, you can use this token that only allows to read my GitHub Packages `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`.
-
 ### Using Maven
 
 You should add the following in your `pom.xml` dependencies
