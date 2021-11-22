@@ -14,6 +14,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
       - name: Setup Java
         uses: actions/setup-java@v2
@@ -26,11 +28,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+        run: mvn $MAVEN_ARGS -DskipTests verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
 
       - name: Build
         env:
-          MAVEN_ARGS: -s ${{ github.workspace }}/settings.xml --batch-mode --errors --fail-at-end --show-version
+          MAVEN_ARGS: --batch-mode --errors --fail-at-end --show-version
         run: mvn $MAVEN_ARGS --update-snapshots install
 
   deploy-github-package:
@@ -49,10 +51,13 @@ jobs:
           java-version: '11'
           distribution: 'zulu'
           cache: 'maven'
+          server-id: github
+          server-username: USERNAME
+          server-password: PASSWORD
 
       - name: Deploy jars
         env:
-          MAVEN_ARGS: -s ${{ github.workspace }}/settings.xml --batch-mode --errors --fail-at-end --show-version
+          MAVEN_ARGS: --batch-mode --errors --fail-at-end --show-version
           USERNAME: ${{ github.actor }}
           PASSWORD: ${{ github.token }}
         run: mvn $MAVEN_ARGS -DskipTests deploy
@@ -74,16 +79,15 @@ jobs:
           distribution: 'zulu'
           cache: 'maven'
           server-id: maven-central
-          server-username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-          server-password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          server-username: USERNAME
+          server-password: PASSWORD
           gpg-private-key: ${{ secrets.MAVEN_CENTRAL_GPG_PRIVATE_KEY }}
-          gpg-passphrase: ${{ secrets.MAVEN_CENTRAL_GPG_PASSPHRASE }}
+          gpg-passphrase: MAVEN_CENTRAL_GPG_PASSPHRASE
 
       - name: Deploy jars
         env:
-          MAVEN_ARGS: -s ${{ github.workspace }}/settings.xml --batch-mode --errors --fail-at-end --show-version
+          MAVEN_ARGS: --batch-mode --errors --fail-at-end --show-version
           MAVEN_CENTRAL_GPG_PASSPHRASE: ${{ secrets.MAVEN_CENTRAL_GPG_PASSPHRASE }}
-          MAVEN_CENTRAL_GPG_PRIVATE_KEY: ${{ secrets.MAVEN_CENTRAL_GPG_PRIVATE_KEY }}
           USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
           PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
         run: mvn $MAVEN_ARGS -DskipTests -DmavenCentralDeploy deploy

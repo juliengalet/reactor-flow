@@ -240,13 +240,13 @@
                 <snapshotRepository>
                     <id>maven-central</id>
                     <name>Maven central snapshots</name>
-                    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+                    <url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
                     <uniqueVersion>true</uniqueVersion>
                 </snapshotRepository>
                 <repository>
                     <id>maven-central</id>
                     <name>Maven central releases</name>
-                    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+                    <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
                     <uniqueVersion>false</uniqueVersion>
                 </repository>
             </distributionManagement>
