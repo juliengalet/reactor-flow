@@ -11,7 +11,6 @@ import io.github.juliengalet.reactorflow.report.Metadata;
 import io.github.juliengalet.reactorflow.report.Report;
 import io.github.juliengalet.reactorflow.report.Status;
 import io.github.juliengalet.reactorflow.testutils.CustomContext;
-import io.github.juliengalet.reactorflow.testutils.TestUtils;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
@@ -23,6 +22,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import static io.github.juliengalet.reactorflow.testutils.TestUtils.assertAndLog;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
@@ -140,6 +140,25 @@ final class StepFlowTest {
         .verifyComplete();
   }
 
+  @Test
+  void givenSuccessClassicExecutionExtendingDefaultMetadataStep_stepFlow_shouldSuccess() {
+    StepFlow<FlowContext, Object> step = new DefaultStep<>().getStep();
+
+    StepVerifier
+        .create(step.run(FlowContext.create()))
+        .assertNext(assertAndLog(globalReport -> assertThat(globalReport.getStatus()).isEqualTo(Status.SUCCESS)))
+        .verifyComplete();
+  }
+
+  @Test
+  void givenSuccessClassicExecutionExtendingDefaultStep_stepFlow_shouldSuccess() {
+    StepFlow<FlowContext, Object> step = new DefaultMetadataStep<>().getStep();
+
+    StepVerifier
+        .create(step.run(FlowContext.create()))
+        .assertNext(assertAndLog(globalReport -> assertThat(globalReport.getStatus()).isEqualTo(Status.SUCCESS)))
+        .verifyComplete();
+  }
 
   @Test
   void givenSuccessWithMonoContext_stepFlow_shouldSuccess() {
@@ -330,7 +349,7 @@ final class StepFlowTest {
 
     StepVerifier
         .create(testWithMetadata.run(FlowContext.createFrom(Map.of("data", List.of(new Date())))))
-        .assertNext(TestUtils.assertAndLog(globalReport -> {
+        .assertNext(assertAndLog(globalReport -> {
           assertThat(globalReport.getStatus()).isEqualTo(Status.ERROR);
           Assertions.assertThat(globalReport.getAllRecoveredErrors()).isEmpty();
           Assertions.assertThat(globalReport.getAllErrors()).hasSize(1);
