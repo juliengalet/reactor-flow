@@ -111,7 +111,7 @@ public final class RetryableFlowBuilder {
 
   public interface Delay<T extends FlowContext> {
     /**
-     * Define the delay between failure and the next retry.
+     * Define the delay in milliseconds between failure and the next retry.
      *
      * @param delay The delay
      * @return {@link RetryableFlowBuilder.Build} builder step
